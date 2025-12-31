@@ -11,6 +11,7 @@
     
     <style>
         :root {
+            /* THÈME SOMBRE (Défaut) */
             --bg-body: #09090b;
             --bg-card: rgba(30, 41, 59, 0.7);
             --bg-input: rgba(15, 23, 42, 0.6);
@@ -22,6 +23,20 @@
             --border: rgba(255, 255, 255, 0.1);
             --danger: #fb7185;
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* THÈME CLAIR */
+        [data-theme="light"] {
+            --bg-body: #e0e7ff;
+            --bg-card: rgba(255, 255, 255, 0.75);
+            --bg-input: rgba(255, 255, 255, 0.9);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --accent: #0ea5e9;
+            --border: rgba(0, 0, 0, 0.1);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -41,6 +56,7 @@
             flex-direction: column; 
             align-items: center; 
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         #appScreen {
@@ -73,14 +89,25 @@
             font-size: 0.75rem; padding: 4px 10px; border-radius: 20px;
             border: 1px solid var(--border); font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.05em; background: rgba(255,255,255,0.05);
-            white-space: nowrap;
+            white-space: nowrap; color: var(--text-muted);
         }
+
+        /* BOUTON THEME */
+        .theme-toggle {
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-main); padding: 10px; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem; transition: all 0.3s;
+            backdrop-filter: blur(10px); width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .theme-toggle:hover { transform: rotate(15deg) scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
 
         /* CONTROLS CARD */
         .controls {
             background: var(--bg-card); padding: 25px; border-radius: 24px;
             border: 1px solid var(--border); box-shadow: var(--shadow);
             backdrop-filter: blur(12px); width: 100%;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
         
         .control-grid { 
@@ -97,19 +124,19 @@
 
         .styled-select, .styled-input {
             background-color: var(--bg-input); color: var(--text-main);
-            border: 1px solid var(--border); padding: 14px; /* Plus grand pour le tactile */
+            border: 1px solid var(--border); padding: 14px;
             border-radius: 12px; font-size: 1rem; outline: none; width: 100%;
             transition: all 0.2s; font-family: inherit; appearance: none;
         }
         .styled-select:focus, .styled-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-        option { background: #1e293b; }
+        option { background: var(--bg-body); color: var(--text-main); }
 
         /* DROP ZONE */
         .drop-zone {
             border: 2px dashed var(--border); border-radius: 24px; padding: 40px 20px;
             text-align: center; background: rgba(139, 92, 246, 0.03); 
             transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;
-            width: 100%;
+            width: 100%; color: var(--text-muted);
         }
         .drop-zone:active { transform: scale(0.98); background: rgba(139, 92, 246, 0.1); }
         .drop-zone span { font-size: 3rem; display: block; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
@@ -150,10 +177,10 @@
         .action-bar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 500px;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--bg-card); backdrop-filter: blur(20px); 
+            border: 1px solid var(--border);
             padding: 12px 12px 12px 25px; border-radius: 60px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
             display: none; justify-content: space-between; align-items: center; z-index: 1000;
             animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -173,41 +200,22 @@
 
         /* --- MOBILE SPECIFIC FIXES --- */
         @media (max-width: 600px) {
-            body {
-                padding: 15px; /* Marges réduites sur les côtés */
-                padding-bottom: 140px; /* Plus de place pour le bouton en bas */
-            }
+            body { padding: 15px; padding-bottom: 140px; }
 
             .header {
-                flex-direction: column;
+                flex-direction: row; /* Garde le bouton à droite */
                 align-items: center;
-                text-align: center;
-                gap: 15px;
+                gap: 10px;
                 margin-bottom: 15px;
             }
 
-            .title-group div {
-                justify-content: center;
-                flex-direction: column;
-            }
-            
-            .title-group h1 { font-size: 1.8rem; }
+            .title-group h1 { font-size: 1.6rem; }
+            .title-group p { font-size: 0.85rem; }
 
-            .controls {
-                padding: 20px; /* Moins de padding interne */
-            }
+            .controls { padding: 20px; }
+            .control-grid { grid-template-columns: 1fr; gap: 20px; }
 
-            .control-grid {
-                grid-template-columns: 1fr; /* Force une seule colonne */
-                gap: 20px;
-            }
-
-            .action-bar {
-                width: calc(100% - 30px); /* Prend presque toute la largeur */
-                bottom: 20px;
-                padding: 10px 10px 10px 20px;
-            }
-            
+            .action-bar { width: calc(100% - 30px); bottom: 20px; padding: 10px 10px 10px 20px; }
             .zip-btn { padding: 12px 20px; }
         }
 
@@ -217,7 +225,7 @@
 
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
     <div id="appScreen">
         <header class="header">
@@ -228,6 +236,7 @@
                 </div>
                 <p>Gestionnaire de fichiers avancé</p>
             </div>
+            <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
         </header>
 
         <div class="controls">
@@ -301,6 +310,30 @@
     </div>
 
     <script>
+        // --- THEME LOGIC ---
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = '☀️';
+                localStorage.setItem('fusionOmegaTheme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = '🌙';
+                localStorage.setItem('fusionOmegaTheme', 'dark');
+            }
+        }
+
+        // Init Theme
+        const savedTheme = localStorage.getItem('fusionOmegaTheme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+        }
+
         // --- VARIABLES ---
         let rawFiles = [];
         let processedFiles = [];
@@ -351,7 +384,6 @@
 
         function handleFiles(files) {
             if (!files.length) return;
-            // Exclusion des fichiers système
             const newFiles = Array.from(files).filter(f => !f.name.startsWith('.') && f.name !== "Thumbs.db");
             rawFiles = [...rawFiles, ...newFiles];
             applyFilters();
@@ -359,7 +391,6 @@
 
         // --- TRAITEMENT ---
         function applyFilters() {
-            // 1. Filtre type
             const typeFilter = document.getElementById('filterType').value;
             let list = rawFiles.filter(f => {
                 if (typeFilter === 'all') return true;
@@ -369,7 +400,6 @@
                 return true;
             });
 
-            // 2. Doublons
             const dedupLevel = document.getElementById('dedupLevel').value;
             if (dedupLevel !== 'none') {
                 const unique = [];
@@ -383,7 +413,6 @@
                 list = unique;
             }
 
-            // 3. Tri
             const sortMode = document.getElementById('sortMode').value;
             list.sort((a, b) => {
                 if (sortMode === 'nameAZ') return a.name.localeCompare(b.name);
@@ -420,7 +449,7 @@
                     div.innerHTML = `
                         <div style="display:flex; align-items:center; overflow:hidden;">
                             <span class="tag-type">${ext}</span>
-                            <span style="font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</span>
+                            <span style="font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-main);">${file.name}</span>
                         </div>
                         <div style="font-size:0.8rem; color:var(--text-muted); min-width:60px; text-align:right;">
                             ${formatBytes(file.size)}
