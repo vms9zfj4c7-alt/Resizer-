@@ -81,14 +81,16 @@
             color: var(--text-muted);
         }
 
-        .theme-toggle {
+        /* BOUTONS HEADER (Theme & Home) */
+        .header-btn {
             background: var(--bg-card); border: 1px solid var(--border);
             color: var(--text-main); padding: 10px; border-radius: 50%;
             cursor: pointer; font-size: 1.2rem; transition: all 0.3s;
             backdrop-filter: blur(10px); width: 42px; height: 42px;
             display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
         }
-        .theme-toggle:hover { transform: rotate(15deg) scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        .header-btn:hover { transform: rotate(15deg) scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
 
         /* PRESETS */
         .presets-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 5px; }
@@ -220,12 +222,14 @@
         <header>
             <div class="title-group">
                 <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
+                    <a href="accueil fichier.html" class="header-btn" title="Retour accueil">🏠</a>
+                    
                     <h1>Resizer OMEGA</h1>
                     <span id="deviceBadge" class="device-badge">Chargement...</span>
                 </div>
                 <p>Outil professionnel de traitement d'images</p>
             </div>
-            <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+            <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
         </header>
 
         <div class="presets-bar">
@@ -397,7 +401,7 @@
     </div>
 
     <script>
-        // --- THEME LOGIC (COPIED FROM FUSIONNEUR) ---
+        // --- THEME LOGIC ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
@@ -473,7 +477,6 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Pas de loadSettings complet pour le thème car géré plus haut, mais pour le reste
             loadSettings();
             toggleGridInputs();
             updatePreviewName();
@@ -483,7 +486,6 @@
         function toggleGridInputs() {
             if(els.split.value === 'grid') {
                 els.gridInputs.style.display = 'flex';
-                // Si on passe en mode grille, souvent on veut remplir
                 if(els.fit.value === 'contain') els.fit.value = 'fill'; 
             } else {
                 els.gridInputs.style.display = 'none';
