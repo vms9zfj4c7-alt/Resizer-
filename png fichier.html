@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio PNG Pro - Ultimate</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-body: #09090b;
+            --bg-card: #1e293b;
+            --primary: #a855f7;
+            --accent: #2dd4bf;
+            --text: #f8fafc;
+            --border: rgba(255,255,255,0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-body); color: var(--text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+
+        .container { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
+        h1 { margin: 0; background: linear-gradient(to right, #d8b4fe, #2dd4bf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* BADGE APPAREIL */
+        .device-badge {
+            font-size: 0.75rem; padding: 4px 12px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2); font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; background: rgba(255,255,255,0.05);
+            display: inline-flex; align-items: center; gap: 6px;
+            animation: fadeIn 1s ease;
+        }
+
+        /* PANNEAU DE CONTROLE */
+        .controls {
+            background: var(--bg-card); padding: 25px; border-radius: 20px;
+            border: 1px solid var(--border); display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .control-block { display: flex; flex-direction: column; gap: 10px; }
+        .control-label { font-weight: 700; font-size: 0.9rem; color: #94a3b8; display: flex; justify-content: space-between; }
+        
+        .checkbox-wrapper {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+            cursor: pointer; transition: 0.2s;
+        }
+        .checkbox-wrapper:hover { background: rgba(255,255,255,0.06); border-color: var(--primary); }
+        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+        input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; height: 6px; background: #334155; border-radius: 5px; appearance: none; }
+        input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: white; border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--accent); }
+
+        /* DROP ZONE */
+        .drop-zone {
+            border: 2px dashed var(--border); border-radius: 20px; padding: 40px;
+            text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02);
+            position: relative; overflow: hidden;
+        }
+        .drop-zone:hover { border-color: var(--primary); background: rgba(168, 85, 247, 0.05); transform: scale(1.005); }
+
+        /* GALLERY */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        
+        .card {
+            background: var(--bg-card); padding: 8px; border-radius: 14px; border: 1px solid var(--border);
+            position: relative; animation: fadeIn 0.4s ease; transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        
+        .preview-box {
+            width: 100%; aspect-ratio: 1/1; border-radius: 10px; overflow: hidden;
+            background-image: linear-gradient(45deg, #444 25%, transparent 25%), linear-gradient(-45deg, #444 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #444 75%), linear-gradient(-45deg, transparent 75%, #444 75%);
+            background-size: 20px 20px; background-color: #333;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        .preview-img { width: 100%; height: 100%; object-fit: contain; }
+
+        .btn-remove {
+            position: absolute; top: -8px; right: -8px; background: #fb7185;
+            color: white; border: none; width: 26px; height: 26px; border-radius: 50%;
+            cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .download-bar {
+            position: sticky; bottom: 20px; background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(15px); padding: 15px 25px; border-radius: 50px;
+            display: none; gap: 15px; border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); width: fit-content; margin: 0 auto;
+            align-items: center; animation: slideUp 0.4s ease; z-index: 100;
+        }
+        
+        .input-prefix {
+            background: transparent; border: none; color: white; width: 120px;
+            outline: none; border-bottom: 1px solid rgba(255,255,255,0.3); padding: 5px;
+            font-family: inherit;
+        }
+        
+        .btn-dl {
+            background: linear-gradient(135deg, var(--primary), #7c3aed); border: none;
+            color: white; font-weight: 700; padding: 12px 30px; border-radius: 30px;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .btn-dl:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+
+        .loading-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; 
+            align-items: center; justify-content: center; border-radius: 20px; z-index: 10;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Studio PNG Pro</h1>
+        <span id="deviceBadge" class="device-badge">Detecting...</span>
+    </div>
+
+    <div class="controls">
+        <div class="control-block">
+            <div class="control-label">MODE DE DÉTOURAGE</div>
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="checkRemoveBg" checked onchange="updateSettings()">
+                <span>🪄 Activer la transparence</span>
+            </label>
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="checkContiguous" checked onchange="updateSettings()">
+                <span>🛡️ <b>Mode Contigu</b> (Protège l'intérieur)</span>
+            </label>
+            <small style="color:#64748b; font-size:0.8rem; line-height:1.4">
+                <b>Coché</b> = Enlève le fond autour uniquement.<br>
+                <b>Décoché</b> = Enlève la couleur partout.
+            </small>
+        </div>
+
+        <div class="control-block">
+            <div class="control-label">
+                SENSIBILITÉ
+                <span id="tolDisplay" style="color:var(--accent)">15%</span>
+            </div>
+            <input type="range" id="rangeTolerance" min="1" max="100" value="15" oninput="updateSettings()">
+            <div style="font-size:0.8rem; color:#64748b; margin-top:5px;">
+                Ajustez si le fond ne part pas complètement.
+            </div>
+        </div>
+    </div>
+
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <span style="font-size:3rem">📂</span><br>
+        <div style="font-size:1.2rem; font-weight:bold; margin:10px 0;">Glissez vos images ici</div>
+        <div id="pasteHint" style="color:var(--accent); font-size:0.9rem">Supporte le copier-coller</div>
+        <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
+        
+        <div id="mainLoader" class="loading-overlay" style="display:none">
+            <div style="color:white; font-weight:bold">⏳ Calcul en cours...</div>
+        </div>
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+</div>
+
+<div class="download-bar" id="downloadBar">
+    <input type="text" id="prefixInput" class="input-prefix" placeholder="Nom (ex: logo)">
+    <button class="btn-dl" onclick="downloadZip()">⬇️ Tout télécharger</button>
+</div>
+
+<script>
+    let imagesData = [];
+    let processingTimeout;
+
+    // --- DETECTION APPAREIL (Restaurée) ---
+    function detectDevice() {
+        const ua = navigator.userAgent;
+        const badge = document.getElementById('deviceBadge');
+        const hint = document.getElementById('pasteHint');
+        let type = "Web", color = "#94a3b8", txt = "Glissez ou Ctrl+V pour coller";
+
+        if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; txt = "Appui long pour coller"; }
+        else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; txt = "Appui long pour coller"; }
+        else if (/Macintosh/i.test(ua)) { type = "Mac 🖥️"; color = "#f472b6"; txt = "Glissez ou Cmd+V pour coller"; }
+        else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; }
+
+        if(badge) {
+            badge.innerText = type;
+            badge.style.color = color;
+            badge.style.borderColor = color;
+            badge.style.background = color + "15";
+        }
+        if(hint) hint.innerHTML = txt;
+    }
+    detectDevice(); // Lancement immédiat
+
+    // --- REGLAGES ---
+    const getSettings = () => ({
+        active: document.getElementById('checkRemoveBg').checked,
+        contiguous: document.getElementById('checkContiguous').checked,
+        tolerance: parseInt(document.getElementById('rangeTolerance').value)
+    });
+
+    const updateSettings = () => {
+        document.getElementById('tolDisplay').innerText = document.getElementById('rangeTolerance').value + "%";
+        clearTimeout(processingTimeout);
+        document.getElementById('mainLoader').style.display = 'flex';
+        
+        processingTimeout = setTimeout(() => {
+            imagesData.forEach(item => processImage(item));
+            document.getElementById('mainLoader').style.display = 'none';
+        }, 100);
+    };
+
+    // --- FICHIERS ---
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#a855f7'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'rgba(255,255,255,0.1)'; });
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = 'rgba(255,255,255,0.1)'; handleFiles(e.dataTransfer.files); });
+    
+    document.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        const files = [];
+        for (let item of items) if (item.kind === 'file' && item.type.match('image.*')) files.push(item.getAsFile());
+        if(files.length) handleFiles(files);
+    });
+
+    function handleFiles(files) {
+        if(files.length === 0) return;
+        document.getElementById('mainLoader').style.display = 'flex';
+
+        let loaded = 0;
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const newItem = {
+                        id: Math.random().toString(36).substr(2, 9),
+                        sourceImg: img,
+                        name: file.name.split('.')[0],
+                        url: null,
+                        blob: null
+                    };
+                    imagesData.push(newItem);
+                    processImage(newItem);
+                    createGalleryCard(newItem);
+                    
+                    loaded++;
+                    if(loaded === files.length) {
+                        document.getElementById('mainLoader').style.display = 'none';
+                        updateUI();
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // --- ALGORITHMES DE DETOURAGE ---
+    function processImage(item) {
+        const settings = getSettings();
+        const canvas = document.createElement('canvas');
+        const w = item.sourceImg.width;
+        const h = item.sourceImg.height;
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.drawImage(item.sourceImg, 0, 0);
+
+        if (settings.active) {
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+            const bgR = data[0], bgG = data[1], bgB = data[2];
+            const threshold = (settings.tolerance / 100) * 765;
+
+            const isMatch = (idx) => {
+                const diff = Math.abs(data[idx] - bgR) + Math.abs(data[idx+1] - bgG) + Math.abs(data[idx+2] - bgB);
+                return diff <= threshold;
+            };
+
+            if (settings.contiguous) {
+                // FLOOD FILL
+                const stack = [0]; 
+                const visited = new Uint8Array(w * h); 
+
+                while (stack.length > 0) {
+                    const pixelIndex = stack.pop();
+                    if (visited[pixelIndex]) continue;
+                    visited[pixelIndex] = 1;
+
+                    const dataIdx = pixelIndex * 4;
+                    if (isMatch(dataIdx)) {
+                        data[dataIdx + 3] = 0; 
+                        const x = pixelIndex % w;
+                        const y = Math.floor(pixelIndex / w);
+                        if (x > 0) stack.push(pixelIndex - 1);
+                        if (x < w - 1) stack.push(pixelIndex + 1);
+                        if (y > 0) stack.push(pixelIndex - w);
+                        if (y < h - 1) stack.push(pixelIndex + w);
+                    }
+                }
+            } else {
+                // GLOBAL REMOVAL
+                for (let i = 0; i < data.length; i += 4) {
+                    if (isMatch(i)) data[i + 3] = 0;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        canvas.toBlob(blob => {
+            if(item.url) URL.revokeObjectURL(item.url);
+            item.blob = blob;
+            item.url = URL.createObjectURL(blob);
+            const imgDOM = document.getElementById(`img-${item.id}`);
+            if(imgDOM) imgDOM.src = item.url;
+        }, 'image/png');
+    }
+
+    // --- UI HELPERS ---
+    function createGalleryCard(item) {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.id = `card-${item.id}`;
+        div.innerHTML = `
+            <div class="preview-box">
+                <img id="img-${item.id}" src="${item.sourceImg.src}" class="preview-img">
+            </div>
+            <button class="btn-remove" onclick="removeItem('${item.id}')">×</button>
+            <div style="font-size:0.75rem; color:#94a3b8; text-align:center; margin-top:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
+                ${item.name}.png
+            </div>
+        `;
+        document.getElementById('gallery').appendChild(div);
+        updateUI();
+    }
+
+    window.removeItem = (id) => {
+        imagesData = imagesData.filter(x => x.id !== id);
+        document.getElementById(`card-${id}`).remove();
+        updateUI();
+    };
+
+    function updateUI() {
+        const bar = document.getElementById('downloadBar');
+        bar.style.display = imagesData.length > 0 ? 'flex' : 'none';
+        const btn = bar.querySelector('.btn-dl');
+        if(btn) btn.innerHTML = `⬇️ Tout télécharger (${imagesData.length})`;
+    }
+
+    window.downloadZip = () => {
+        const zip = new JSZip();
+        const folder = zip.folder("png_pro");
+        const prefix = document.getElementById('prefixInput').value.trim();
+
+        imagesData.forEach((item, idx) => {
+            const finalName = prefix ? `${prefix}_${idx+1}.png` : `${item.name}.png`;
+            folder.file(finalName, item.blob);
+        });
+
+        const btn = document.querySelector('.btn-dl');
+        btn.innerText = "📦 Compression...";
+        
+        zip.generateAsync({type:"blob"}).then(content => {
+            saveAs(content, "images_detourees.zip");
+            btn.innerText = "✅ Terminé !";
+            setTimeout(() => updateUI(), 2000);
+        });
+    };
+</script>
+
+</body>
+</html>
