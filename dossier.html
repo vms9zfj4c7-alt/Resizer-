@@ -92,15 +92,17 @@
             white-space: nowrap; color: var(--text-muted);
         }
 
-        /* BOUTON THEME */
-        .theme-toggle {
+        /* BOUTON HEADER (THEME + HOME) */
+        .header-btn {
             background: var(--bg-card); border: 1px solid var(--border);
             color: var(--text-main); padding: 10px; border-radius: 50%;
             cursor: pointer; font-size: 1.2rem; transition: all 0.3s;
             backdrop-filter: blur(10px); width: 42px; height: 42px;
             display: flex; align-items: center; justify-content: center;
+            text-decoration: none; /* Pour le lien */
         }
-        .theme-toggle:hover { transform: rotate(15deg) scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        .header-btn:hover { transform: rotate(15deg) scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
 
         /* CONTROLS CARD */
         .controls {
@@ -231,12 +233,14 @@
         <header class="header">
             <div class="title-group">
                 <div style="display:flex; align-items:center; gap: 10px;">
+                    <a href="accueil fichier.html" class="header-btn" title="Retour accueil">🏠</a>
+
                     <h1>Fusionneur OMEGA</h1>
                     <span id="deviceBadge" class="device-badge">...</span>
                 </div>
                 <p>Gestionnaire de fichiers avancé</p>
             </div>
-            <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+            <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
         </header>
 
         <div class="controls">
