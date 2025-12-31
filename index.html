@@ -2,9 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OMEGA SUITE - Nova Corporation</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <link id="manifestLink" rel="manifest" href="manifest-dark.json">
+    
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#e0e7ff" media="(prefers-color-scheme: light)">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nova Suite">
+    
+    <link id="appleIconLink" rel="apple-touch-icon" href="icon-dark.png">
+
+    <link id="faviconLink" rel="icon" type="image/png" href="icon-dark.png">
+
     <style>
         :root {
             --png-color: #2dd4bf;
@@ -151,7 +165,7 @@
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* FOOTER STYLING - NOVA STYLE */
+        /* FOOTER STYLING */
         footer { 
             margin-top: 80px; 
             text-align: center;
@@ -253,28 +267,52 @@
     </footer>
 
     <script>
-        // --- THEME ---
+        // --- LOGIQUE PWA : Changement dynamique des icônes ---
+        function updateAppResources(theme) {
+            const appleIcon = document.getElementById('appleIconLink');
+            const favicon = document.getElementById('faviconLink');
+            const manifest = document.getElementById('manifestLink');
+
+            if (theme === 'light') {
+                // Passage en mode CLAIR
+                if (appleIcon) appleIcon.href = 'icon-light.png';
+                if (favicon) favicon.href = 'icon-light.png';
+                if (manifest) manifest.href = 'manifest-light.json';
+            } else {
+                // Passage en mode SOMBRE
+                if (appleIcon) appleIcon.href = 'icon-dark.png';
+                if (favicon) favicon.href = 'icon-dark.png';
+                if (manifest) manifest.href = 'manifest-dark.json';
+            }
+        }
+
+        // --- GESTION DU THEME ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
             const isDark = body.getAttribute('data-theme') === 'dark';
-            if (isDark) {
-                body.setAttribute('data-theme', 'light');
-                btn.innerText = '☀️';
-                localStorage.setItem('omegaHubTheme', 'light');
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                btn.innerText = '🌙';
-                localStorage.setItem('omegaHubTheme', 'dark');
-            }
+            
+            // On inverse le thème
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            // Mise à jour visuelle
+            body.setAttribute('data-theme', newTheme);
+            btn.innerText = isDark ? '☀️' : '🌙';
+            localStorage.setItem('omegaHubTheme', newTheme);
+            
+            // Mise à jour des ressources PWA (Icone + Manifeste)
+            updateAppResources(newTheme);
         }
+
+        // --- CHARGEMENT INITIAL ---
         const savedTheme = localStorage.getItem('omegaHubTheme');
         if (savedTheme) {
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+            updateAppResources(savedTheme);
         }
 
-        // --- MOUSE EFFECT ---
+        // --- SOURIS (Effet Glassmorphism) ---
         function handleMouseMove(e) {
             const card = e.currentTarget;
             const rect = card.getBoundingClientRect();
