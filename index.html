@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Resizer Studio OMEGA - Ultimate Edition</title>
+    <title>Resizer Studio OMEGA - Grid Edition</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -196,32 +196,51 @@
         </header>
 
         <div class="presets-bar">
-            <button class="preset-btn" onclick="applyPreset(32, 32)">⚡ Favicon</button>
-            <button class="preset-btn" onclick="applyPreset(128, 128)">👾 Discord</button>
-            <button class="preset-btn" onclick="applyPreset(1080, 1080)">📸 Insta</button>
-            <button class="preset-btn" onclick="applyPreset(1920, 1080)">📺 Full HD</button>
-            <button class="preset-btn" onclick="applyPreset(400, 400)">🔥 Profil</button>
+            <button class="preset-btn" onclick="applyPreset(1080, 1080, 3, 1)">📸 Insta Pano (3x1)</button>
+            <button class="preset-btn" onclick="applyPreset(1080, 1080, 2, 2)">🧊 Grille 2x2</button>
+            <button class="preset-btn" onclick="applyPreset(1080, 1080, 3, 3)">🧊 Grille 3x3</button>
+            <button class="preset-btn" onclick="applyPreset(64, 64, 1, 1)">⚡ 64x64</button>
         </div>
 
         <div class="config-grid">
             <div class="config-card">
-                <div class="card-title">📏 Dimensions & Mode</div>
+                <div class="card-title">📏 Configuration</div>
                 <div class="input-row">
                     <div class="input-group">
-                        <label>Largeur</label>
-                        <input type="number" id="cfgWidth" value="64" min="1">
+                        <label>Largeur de SORTIE (px)</label>
+                        <input type="number" id="cfgWidth" value="1080" min="1">
                     </div>
                     <div class="input-group">
-                        <label>Hauteur</label>
-                        <input type="number" id="cfgHeight" value="64" min="1">
+                        <label>Hauteur de SORTIE (px)</label>
+                        <input type="number" id="cfgHeight" value="1080" min="1">
                     </div>
                 </div>
+                
                 <div class="input-group">
-                    <label>Ajustement</label>
+                    <label>Mode de Découpage</label>
+                    <select id="cfgSplit" onchange="toggleGridInputs()">
+                        <option value="none">Normal (Image entière)</option>
+                        <option value="grid">🔪 Découpage Grille (2x2, 3x3...)</option>
+                    </select>
+                </div>
+
+                <div class="input-row" id="gridInputs" style="display: none; animation: fadeIn 0.3s ease;">
+                    <div class="input-group">
+                        <label style="color:var(--accent);">Nb. Colonnes (Vertical)</label>
+                        <input type="number" id="cfgCols" value="2" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label style="color:var(--accent);">Nb. Lignes (Horizontal)</label>
+                        <input type="number" id="cfgRows" value="2" min="1">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Ajustement de l'image</label>
                     <select id="cfgFit">
-                        <option value="fill">Étirer (Déformer)</option>
-                        <option value="contain">Ajuster (Entière)</option>
-                        <option value="cover">Remplir (Zoom)</option>
+                        <option value="fill">Étirer (Remplir la case)</option>
+                        <option value="cover">Zoomer (Garder proportions)</option>
+                        <option value="contain">Ajuster (Voir tout)</option>
                     </select>
                 </div>
             </div>
@@ -316,7 +335,7 @@
 
         <div id="previewContainer" class="preview-panel">
             <div class="preview-header">
-                <div style="font-weight:700">👁️ Aperçu en direct (Image 1)</div>
+                <div style="font-weight:700">👁️ Aperçu (Morceau 1)</div>
                 <div class="preview-tag" id="previewTag">PNG</div>
             </div>
             
@@ -325,14 +344,14 @@
             </div>
 
             <div class="preview-stats">
-                <div class="stat-item">📏 <b><span id="prevDim">64x64</span>px</b></div>
+                <div class="stat-item">📏 <b><span id="prevDim">1080x1080</span>px</b></div>
                 <div class="stat-item">💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
             </div>
         </div>
 
         <div id="galleryContainer" style="display:none;">
             <div class="gallery-header">
-                <h3>Liste des fichiers (<span id="fileCount">0</span>)</h3>
+                <h3>Résultat (<span id="fileCount">0</span> fichiers générés)</h3>
                 <button class="clear-btn" onclick="clearAll()">Tout effacer</button>
             </div>
             <div class="gallery" id="gallery"></div>
@@ -351,6 +370,10 @@
         const els = {
             width: document.getElementById('cfgWidth'),
             height: document.getElementById('cfgHeight'),
+            split: document.getElementById('cfgSplit'),
+            cols: document.getElementById('cfgCols'), // NEW
+            rows: document.getElementById('cfgRows'), // NEW
+            gridInputs: document.getElementById('gridInputs'), // NEW
             fit: document.getElementById('cfgFit'),
             rotate: document.getElementById('cfgRotate'),
             flip: document.getElementById('cfgFlip'),
@@ -379,58 +402,35 @@
             themeBtn: document.getElementById('themeBtn')
         };
 
-        // --- DETECTION DU DEVICE ET ADAPTATION DU TEXTE ---
         function detectDevice() {
             const ua = navigator.userAgent;
             const badge = document.getElementById('deviceBadge');
-            const hint = document.getElementById('pasteHint'); // Sélection du texte de collage
-
-            let type = "Inconnu ❓";
-            let color = "#94a3b8";
-            let pasteText = "Ou faites <b>Ctrl + V</b> pour coller"; // Texte par défaut (PC)
-
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(ua) || (navigator.maxTouchPoints > 0 && /Macintosh/i.test(ua));
-
-            if (/Android/i.test(ua)) {
-                type = "Android 🤖"; color = "#10b981";
-                pasteText = "👆 Restez appuyé pour coller";
-            } else if (/iPhone|iPad|iPod/i.test(ua)) {
-                type = "iOS 🍎"; color = "#ef4444";
-                pasteText = "👆 Restez appuyé pour coller";
-            } else if (/Windows/i.test(ua)) {
-                type = "Windows 💻"; color = "#3b82f6";
-                pasteText = "Ou faites <b>Ctrl + V</b> pour coller";
-            } else if (/Macintosh|Mac OS X/i.test(ua)) {
-                if (navigator.maxTouchPoints > 0) {
-                    type = "iPad 🍎";
-                    pasteText = "👆 Restez appuyé pour coller";
-                } else {
-                    type = "Mac 🖥️";
-                    // Symbole Command pour Mac
-                    pasteText = "Ou faites <b>Cmd ⌘ + V</b> pour coller";
-                }
-                color = "#f472b6";
-            }
-
-            // Mise à jour du badge
-            if (badge) {
-                badge.innerText = type;
-                badge.style.background = `${color}20`;
-                badge.style.borderColor = color;
-                badge.style.color = color;
-            }
-
-            // Mise à jour du texte d'aide au collage
-            if (hint) {
-                hint.innerHTML = pasteText;
-            }
+            const hint = document.getElementById('pasteHint');
+            let type = "Inconnu ❓"; let color = "#94a3b8"; let pasteText = "Ou faites <b>Ctrl + V</b> pour coller";
+            if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; pasteText = "👆 Restez appuyé pour coller"; }
+            else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; pasteText = "👆 Restez appuyé pour coller"; }
+            else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; }
+            else if (/Macintosh/i.test(ua)) { type = "Mac 🖥️"; color = "#f472b6"; pasteText = "Ou faites <b>Cmd ⌘ + V</b> pour coller"; }
+            if (badge) { badge.innerText = type; badge.style.background = `${color}20`; badge.style.borderColor = color; badge.style.color = color; }
+            if (hint) { hint.innerHTML = pasteText; }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSettings();
+            toggleGridInputs();
             updatePreviewName();
-            detectDevice(); // APPEL DE LA FONCTION MODIFIÉE
+            detectDevice();
         });
+
+        function toggleGridInputs() {
+            if(els.split.value === 'grid') {
+                els.gridInputs.style.display = 'flex';
+                // Si on passe en mode grille, souvent on veut remplir
+                if(els.fit.value === 'contain') els.fit.value = 'fill'; 
+            } else {
+                els.gridInputs.style.display = 'none';
+            }
+        }
 
         els.themeBtn.addEventListener('click', () => {
             const body = document.body;
@@ -444,17 +444,15 @@
             const grid = document.getElementById('advancedGrid');
             const btn = document.getElementById('toggleAdvancedBtn');
             if (grid.style.display === 'none') {
-                grid.style.display = 'grid';
-                btn.innerHTML = '🔼 Masquer les options avancées';
+                grid.style.display = 'grid'; btn.innerHTML = '🔼 Masquer options';
                 btn.style.background = 'var(--bg-card)'; btn.style.borderColor = 'var(--primary)';
             } else {
-                grid.style.display = 'none';
-                btn.innerHTML = '⚙️ Plus d\'options (Filtres, Watermark...)';
+                grid.style.display = 'none'; btn.innerHTML = '⚙️ Plus d\'options';
                 btn.style.background = ''; btn.style.borderColor = '';
             }
         }
 
-        const inputs = [els.width, els.height, els.fit, els.rotate, els.flip, els.format, els.quality, els.radius, els.filter, els.watermark, els.prefix];
+        const inputs = [els.width, els.height, els.split, els.cols, els.rows, els.fit, els.rotate, els.flip, els.format, els.quality, els.radius, els.filter, els.watermark, els.prefix];
         inputs.forEach(input => {
             input.addEventListener('input', () => {
                 if(input === els.quality) els.qualityVal.innerText = input.value + '%';
@@ -465,16 +463,25 @@
             });
         });
 
-        window.applyPreset = (w, h) => {
+        // Mise à jour des presets pour inclure cols/rows
+        window.applyPreset = (w, h, c=1, r=1) => {
             els.width.value = w; els.height.value = h;
+            if(c > 1 || r > 1) {
+                els.split.value = 'grid';
+                els.cols.value = c; els.rows.value = r;
+            } else {
+                els.split.value = 'none';
+            }
+            toggleGridInputs();
             saveSettings(); if(sourceFiles.length > 0) processBatch();
         };
 
         function updatePreviewName() {
             const p = els.prefix.value.trim();
+            const s = els.split.value === 'grid' ? `_p1` : '';
             let ext = els.format.value.split('/')[1].toUpperCase();
             if(ext === 'JPEG') ext = 'JPG'; if(ext === 'X-ICON') ext = 'ICO';
-            els.previewName.innerText = p ? `1_${p}.${ext.toLowerCase()}` : `1_Exemple_${ext}.png`;
+            els.previewName.innerText = p ? `1_${p}${s}.${ext.toLowerCase()}` : `1_Exemple${s}_${ext}.png`;
             els.previewTag.innerText = ext;
         }
 
@@ -499,54 +506,50 @@
 
         function handleNewFiles(files) {
             if (!files.length) return;
-            Array.from(files).forEach(file => {
-                if (file.type.match('image.*')) sourceFiles.push(file);
-            });
-            processBatch();
-            els.fileInput.value = '';
+            Array.from(files).forEach(file => { if (file.type.match('image.*')) sourceFiles.push(file); });
+            processBatch(); els.fileInput.value = '';
         }
 
         async function processBatch() {
             els.gallery.innerHTML = '';
             processedBlobs = [];
             if (sourceFiles.length === 0) {
-                els.galleryCont.style.display = 'none';
-                els.previewContainer.style.display = 'none';
-                els.actionPanel.style.display = 'none';
+                els.galleryCont.style.display = 'none'; els.previewContainer.style.display = 'none'; els.actionPanel.style.display = 'none';
                 return;
             }
-            els.galleryCont.style.display = 'block';
-            els.previewContainer.style.display = 'block';
-            els.fileCount.innerText = sourceFiles.length;
-            els.zipBtn.innerText = "⏳ Traitement...";
+            els.galleryCont.style.display = 'block'; els.previewContainer.style.display = 'block';
+            els.zipBtn.innerText = "⏳ Calcul...";
             
             const cfg = {
-                w: parseInt(els.width.value) || 64, h: parseInt(els.height.value) || 64,
+                w: parseInt(els.width.value) || 100, h: parseInt(els.height.value) || 100,
+                split: els.split.value, 
+                cols: parseInt(els.cols.value) || 1, rows: parseInt(els.rows.value) || 1,
                 fit: els.fit.value, rotate: parseInt(els.rotate.value), flip: els.flip.value,
                 fmt: els.format.value, qual: parseInt(els.quality.value) / 100,
                 radius: parseInt(els.radius.value), filter: els.filter.value,
                 wm: els.watermark.value, prefix: els.prefix.value.trim()
             };
 
+            let previewSet = false;
             for (let i = 0; i < sourceFiles.length; i++) {
-                const blobInfo = await processSingleImage(sourceFiles[i], i, cfg);
-                processedBlobs.push(blobInfo);
-                addCardToGallery(blobInfo, i);
-                if (i === 0) {
-                    els.livePreviewImg.src = blobInfo.url;
-                    els.prevDim.innerText = `${cfg.w}x${cfg.h}`;
-                    els.prevSize.innerText = formatBytes(blobInfo.blob.size);
-                }
+                const results = await processSingleImage(sourceFiles[i], i, cfg);
+                results.forEach(res => {
+                    processedBlobs.push(res);
+                    addCardToGallery(res, processedBlobs.length - 1);
+                    if (!previewSet) {
+                        els.livePreviewImg.src = res.url;
+                        els.prevDim.innerText = `${cfg.w}x${cfg.h}`;
+                        els.prevSize.innerText = formatBytes(res.blob.size);
+                        previewSet = true;
+                    }
+                });
             }
             updateUI();
         }
 
         function formatBytes(bytes, decimals = 1) {
-            if (!+bytes) return '0 B';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['B', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            if (!+bytes) return '0 B'; const k = 1024; const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB']; const i = Math.floor(Math.log(bytes) / Math.log(k));
             return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
         }
 
@@ -556,62 +559,105 @@
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = cfg.w; canvas.height = cfg.h;
-                        if (cfg.fmt === 'image/jpeg') { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cfg.w, cfg.h); }
-                        
-                        if (cfg.radius > 0) {
-                            const r = (Math.min(cfg.w, cfg.h) * (cfg.radius * 2)) / 100;
-                            ctx.beginPath(); ctx.roundRect(0, 0, cfg.w, cfg.h, r); ctx.clip();
-                        }
-                        
-                        if (cfg.filter !== 'none') ctx.filter = `${cfg.filter}(100%)`;
-                        let dw = cfg.w, dh = cfg.h, dx = 0, dy = 0;
-                        let srcW = img.width, srcH = img.height;
-                        if (cfg.rotate === 90 || cfg.rotate === 270) { [srcW, srcH] = [srcH, srcW]; }
-                        if (cfg.fit !== 'fill') {
-                            const ratioImg = srcW / srcH; const ratioCanvas = cfg.w / cfg.h;
-                            if (cfg.fit === 'contain') {
-                                if (ratioImg > ratioCanvas) { dw = cfg.w; dh = cfg.w / ratioImg; dy = (cfg.h - dh) / 2; }
-                                else { dh = cfg.h; dw = cfg.h * ratioImg; dx = (cfg.w - dw) / 2; }
-                            } else if (cfg.fit === 'cover') {
-                                if (ratioImg > ratioCanvas) { dh = cfg.h; dw = cfg.h * ratioImg; dx = (cfg.w - dw) / 2; }
-                                else { dw = cfg.w; dh = cfg.w / ratioImg; dy = (cfg.h - dh) / 2; }
+                        let tasks = [];
+
+                        // --- LOGIQUE GRID SPLIT ---
+                        if (cfg.split === 'grid') {
+                            const gridCols = Math.max(1, cfg.cols);
+                            const gridRows = Math.max(1, cfg.rows);
+                            // Taille d'un morceau dans l'image source
+                            const srcChunkW = img.width / gridCols;
+                            const srcChunkH = img.height / gridRows;
+
+                            for(let r = 0; r < gridRows; r++) {
+                                for(let c = 0; c < gridCols; c++) {
+                                    tasks.push({
+                                        srcX: c * srcChunkW,
+                                        srcY: r * srcChunkH,
+                                        srcW: srcChunkW,
+                                        srcH: srcChunkH,
+                                        suffix: `_row${r+1}_col${c+1}` // Nommage clair
+                                    });
+                                }
                             }
+                        } else {
+                            // Mode normal
+                            tasks.push({ srcX: 0, srcY: 0, srcW: img.width, srcH: img.height, suffix: '' });
                         }
-                        ctx.save();
-                        ctx.translate(cfg.w / 2, cfg.h / 2);
-                        ctx.rotate((cfg.rotate * Math.PI) / 180);
-                        if (cfg.flip === 'horizontal') ctx.scale(-1, 1);
-                        if (cfg.flip === 'vertical') ctx.scale(1, -1);
-                        ctx.drawImage(img, -dw/2 + (dx - (cfg.w-dw)/2), -dh/2 + (dy - (cfg.h-dh)/2), dw, dh);
-                        ctx.restore();
-                        ctx.filter = 'none';
-                        if (cfg.wm) {
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.font = `bold ${Math.max(10, cfg.h / 8)}px Arial`;
-                            ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-                            ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 2;
-                            ctx.fillText(cfg.wm, cfg.w - 5, cfg.h - 5);
-                        }
-                        const isIco = cfg.fmt === 'image/x-icon'; const exportFmt = isIco ? 'image/png' : cfg.fmt;
-                        canvas.toBlob((blob) => {
-                            let ext = 'png';
-                            if (cfg.fmt === 'image/jpeg') ext = 'jpg';
-                            if (cfg.fmt === 'image/webp') ext = 'webp';
-                            if (isIco) ext = 'ico';
-                            let finalName; let formatTag = ext.toUpperCase();
-                            if (cfg.prefix) { finalName = `${index + 1}_${cfg.prefix}.${ext}`; }
-                            else {
-                                const rawName = file.name ? file.name.split('.').slice(0, -1).join('.') : 'image';
-                                finalName = `${index + 1}_${rawName}_${formatTag}.${ext}`;
-                            }
-                            if (isIco) {
-                                pngToIco(blob).then(icoBlob => { resolve({ blob: icoBlob, name: finalName, url: URL.createObjectURL(icoBlob) }); });
-                            } else {
-                                resolve({ blob: blob, name: finalName, url: URL.createObjectURL(blob) });
-                            }
-                        }, exportFmt, cfg.qual);
+
+                        const promises = tasks.map(task => {
+                            return new Promise(subResolve => {
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                canvas.width = cfg.w; canvas.height = cfg.h;
+                                
+                                if (cfg.fmt === 'image/jpeg') { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cfg.w, cfg.h); }
+                                if (cfg.radius > 0) {
+                                    const r = (Math.min(cfg.w, cfg.h) * (cfg.radius * 2)) / 100;
+                                    ctx.beginPath(); ctx.roundRect(0, 0, cfg.w, cfg.h, r); ctx.clip();
+                                }
+                                if (cfg.filter !== 'none') ctx.filter = `${cfg.filter}(100%)`;
+
+                                ctx.save();
+                                ctx.translate(cfg.w / 2, cfg.h / 2);
+                                ctx.rotate((cfg.rotate * Math.PI) / 180);
+                                if (cfg.flip === 'horizontal') ctx.scale(-1, 1);
+                                if (cfg.flip === 'vertical') ctx.scale(1, -1);
+
+                                // Dessin avec adaptation
+                                let dw = cfg.w, dh = cfg.h, dx = 0, dy = 0;
+                                let srcW = task.srcW, srcH = task.srcH;
+                                if (cfg.rotate === 90 || cfg.rotate === 270) { [srcW, srcH] = [srcH, srcW]; }
+
+                                if (cfg.fit !== 'fill') {
+                                    const ratioImg = srcW / srcH; const ratioCanvas = cfg.w / cfg.h;
+                                    if (cfg.fit === 'contain') {
+                                        if (ratioImg > ratioCanvas) { dw = cfg.w; dh = cfg.w / ratioImg; dy = (cfg.h - dh) / 2; }
+                                        else { dh = cfg.h; dw = cfg.h * ratioImg; dx = (cfg.w - dw) / 2; }
+                                    } else if (cfg.fit === 'cover') {
+                                        if (ratioImg > ratioCanvas) { dh = cfg.h; dw = cfg.h * ratioImg; dx = (cfg.w - dw) / 2; }
+                                        else { dw = cfg.w; dh = cfg.w / ratioImg; dy = (cfg.h - dh) / 2; }
+                                    }
+                                }
+                                
+                                // On dessine la portion de l'image (task.srcX/Y) dans le canvas destination
+                                ctx.drawImage(img, 
+                                    task.srcX, task.srcY, task.srcW, task.srcH, // Source Crop
+                                    -dw/2 + (dx - (cfg.w-dw)/2), -dh/2 + (dy - (cfg.h-dh)/2), dw, dh // Dest Pos & Size
+                                );
+
+                                ctx.restore();
+                                ctx.filter = 'none';
+                                
+                                if (cfg.wm) {
+                                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.font = `bold ${Math.max(10, cfg.h / 8)}px Arial`;
+                                    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+                                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 2;
+                                    ctx.fillText(cfg.wm, cfg.w - 5, cfg.h - 5);
+                                }
+
+                                const isIco = cfg.fmt === 'image/x-icon'; const exportFmt = isIco ? 'image/png' : cfg.fmt;
+                                canvas.toBlob((blob) => {
+                                    let ext = 'png';
+                                    if (cfg.fmt === 'image/jpeg') ext = 'jpg';
+                                    if (cfg.fmt === 'image/webp') ext = 'webp';
+                                    if (isIco) ext = 'ico';
+                                    
+                                    let finalName;
+                                    if (cfg.prefix) { finalName = `${index + 1}_${cfg.prefix}${task.suffix}.${ext}`; }
+                                    else {
+                                        const rawName = file.name ? file.name.split('.').slice(0, -1).join('.') : 'image';
+                                        finalName = `${index + 1}_${rawName}${task.suffix}.${ext}`;
+                                    }
+                                    if (isIco) {
+                                        pngToIco(blob, cfg.w, cfg.h).then(icoBlob => { subResolve({ blob: icoBlob, name: finalName, url: URL.createObjectURL(icoBlob) }); });
+                                    } else {
+                                        subResolve({ blob: blob, name: finalName, url: URL.createObjectURL(blob) });
+                                    }
+                                }, exportFmt, cfg.qual);
+                            });
+                        });
+                        Promise.all(promises).then(res => resolve(res));
                     };
                     img.src = e.target.result;
                 };
@@ -619,13 +665,11 @@
             });
         }
 
-        async function pngToIco(pngBlob) {
+        async function pngToIco(pngBlob, w, h) {
             const buffer = await pngBlob.arrayBuffer(); const pngData = new Uint8Array(buffer); const len = pngData.length;
             const header = new Uint8Array(22); const view = new DataView(header.buffer);
             view.setUint16(0, 0, true); view.setUint16(2, 1, true); view.setUint16(4, 1, true);
-            const w = parseInt(els.width.value) > 255 ? 0 : parseInt(els.width.value);
-            const h = parseInt(els.height.value) > 255 ? 0 : parseInt(els.height.value);
-            header[6] = w; header[7] = h; header[8] = 0; header[9] = 0;
+            header[6] = w > 255 ? 0 : w; header[7] = h > 255 ? 0 : h; header[8] = 0; header[9] = 0;
             view.setUint16(10, 1, true); view.setUint16(12, 32, true);
             view.setUint32(14, len, true); view.setUint32(18, 22, true);
             const icoFile = new Uint8Array(22 + len); icoFile.set(header, 0); icoFile.set(pngData, 22);
@@ -637,24 +681,27 @@
             div.innerHTML = `<img src="${item.url}" alt="Aperçu"><button class="delete-btn" onclick="removeImage(${index})" title="Supprimer">×</button><div class="image-info">${item.name}</div>`;
             els.gallery.appendChild(div);
         }
-        function removeImage(index) { sourceFiles.splice(index, 1); processBatch(); }
+        function removeImage(index) { processedBlobs.splice(index, 1); els.gallery.innerHTML = ''; processedBlobs.forEach((item, idx) => addCardToGallery(item, idx)); updateUI(); }
         function clearAll() { sourceFiles = []; processBatch(); }
         function updateUI() {
-            const count = processedBlobs.length;
-            if (count > 0) { els.actionPanel.style.display = 'flex'; els.countLabel.innerText = `${count} image${count > 1 ? 's' : ''} prête${count > 1 ? 's' : ''}`; }
+            const count = processedBlobs.length; els.fileCount.innerText = count;
+            if (count > 0) { els.actionPanel.style.display = 'flex'; els.countLabel.innerText = `${count} image${count > 1 ? 's' : ''}`; }
             else { els.actionPanel.style.display = 'none'; }
+            els.zipBtn.innerText = "⬇️ Télécharger ZIP";
         }
         function downloadZip() {
             if (processedBlobs.length === 0) return;
-            const zip = new JSZip(); const folderName = `Images_${els.width.value}x${els.height.value}`;
-            const imgFolder = zip.folder(folderName); const zipName = `${folderName}_ResizerOmega.zip`;
+            const zip = new JSZip(); const folderName = `Grid_Images`;
+            const imgFolder = zip.folder(folderName);
             els.zipBtn.innerText = "📦 Compression...";
             processedBlobs.forEach(img => { imgFolder.file(img.name, img.blob); });
-            zip.generateAsync({type:"blob"}).then(function(content) { saveAs(content, zipName); els.zipBtn.innerText = "⬇️ Télécharger ZIP"; });
+            zip.generateAsync({type:"blob"}).then(function(content) { saveAs(content, "Resizer_Grid.zip"); els.zipBtn.innerText = "⬇️ Télécharger ZIP"; });
         }
         function saveSettings() {
             const settings = {
-                w: els.width.value, h: els.height.value, fit: els.fit.value, rot: els.rotate.value,
+                w: els.width.value, h: els.height.value, split: els.split.value, 
+                cols: els.cols.value, rows: els.rows.value,
+                fit: els.fit.value, rot: els.rotate.value,
                 flip: els.flip.value, fmt: els.format.value, qual: els.quality.value, rad: els.radius.value,
                 filt: els.filter.value, wm: els.watermark.value, pref: els.prefix.value, theme: document.body.getAttribute('data-theme')
             };
@@ -663,7 +710,9 @@
         function loadSettings() {
             const saved = JSON.parse(localStorage.getItem('resizerOmegaConfig'));
             if (saved) {
-                els.width.value = saved.w || 64; els.height.value = saved.h || 64;
+                els.width.value = saved.w || 1080; els.height.value = saved.h || 1080;
+                els.split.value = saved.split || 'none';
+                els.cols.value = saved.cols || 2; els.rows.value = saved.rows || 2;
                 els.fit.value = saved.fit || 'fill'; els.rotate.value = saved.rot || 0;
                 els.flip.value = saved.flip || 'none'; els.format.value = saved.fmt || 'image/png';
                 els.quality.value = saved.qual || 90; els.qualityVal.innerText = (saved.qual || 90) + '%';
