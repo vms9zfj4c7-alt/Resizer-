@@ -1,22 +1,35 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMEGA SUITE - Hub Créatif</title>
+    <title>OMEGA SUITE - Nova Corporation</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
+            --png-color: #2dd4bf;
+            --zip-color: #6366f1;
+            --res-color: #a855f7;
+        }
+
+        [data-theme="dark"] {
             --bg-body: #09090b;
             --bg-card: rgba(30, 41, 59, 0.6);
             --border: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            
-            /* Couleurs Spécifiques */
-            --png-color: #2dd4bf;   /* Teal */
-            --zip-color: #6366f1;   /* Indigo */
-            --res-color: #a855f7;   /* Purple */
+            --shadow-card: 0 20px 40px -10px rgba(0,0,0,0.5);
+            --bg-badge: rgba(255,255,255,0.03);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #e0e7ff;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --border: rgba(0, 0, 0, 0.05);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --shadow-card: 0 20px 40px -10px rgba(50, 50, 93, 0.1);
+            --bg-badge: rgba(0,0,0,0.05);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,243 +45,241 @@
             justify-content: center;
             padding: 40px 20px;
             overflow-x: hidden;
-
-            /* Fond animé subtil */
+            transition: background-color 0.3s ease, color 0.3s ease;
             background-image: 
                 radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.1), transparent 25%),
                 radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.1), transparent 25%);
             background-attachment: fixed;
         }
 
-        /* --- HEADER --- */
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-            animation: fadeIn 1s ease;
-            position: relative;
+        header { 
+            text-align: center; margin-bottom: 60px; animation: fadeIn 1s ease; 
+            position: relative; width: 100%; max-width: 1200px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
+        .theme-toggle {
+            position: absolute; top: 0; right: 0;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-main); padding: 10px; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem; transition: all 0.3s;
+            backdrop-filter: blur(10px); width: 45px; height: 45px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .theme-toggle:hover { transform: rotate(15deg) scale(1.1); box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+
         .brand-badge {
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-            padding: 5px 12px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.03);
-            margin-bottom: 15px;
-            display: inline-block;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+            color: var(--text-muted); border: 1px solid var(--border); padding: 6px 14px;
+            border-radius: 20px; background: var(--bg-badge); margin-bottom: 15px; display: inline-block;
         }
 
         h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            margin: 0;
-            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -2px;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.1));
+            font-size: 3.5rem; font-weight: 900; margin: 0;
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -2px; filter: drop-shadow(0 0 20px rgba(255,255,255,0.1));
         }
 
-        p.subtitle {
-            margin-top: 10px;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            font-weight: 300;
-        }
+        p.subtitle { margin-top: 10px; color: var(--text-muted); font-size: 1.1rem; font-weight: 300; }
 
-        /* --- GRID --- */
         .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-            width: 100%;
-            max-width: 1200px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px; width: 100%; max-width: 1200px;
         }
 
-        /* --- CARDS --- */
         .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 35px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            backdrop-filter: blur(12px);
-            height: 100%;
+            background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 24px;
+            padding: 35px; text-decoration: none; color: inherit; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; backdrop-filter: blur(12px); height: 100%;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        /* Glow effect */
         .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%);
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
-            z-index: 1;
+            opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 1;
         }
         
         .card:hover {
-            transform: translateY(-5px) scale(1.01);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+            transform: translateY(-5px) scale(1.01); border-color: rgba(255,255,255,0.2);
+            box-shadow: var(--shadow-card);
         }
         .card:hover::before { opacity: 1; }
 
-        /* Card Content */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            z-index: 2;
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; z-index: 2; }
 
-        .icon-box {
-            font-size: 2.5rem;
+        /* --- LOGOS / ICONS --- */
+        .icon-wrapper {
             width: 60px; height: 60px;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            transition: 0.3s;
+            border-radius: 16px; background: var(--bg-badge);
+            border: 1px solid var(--border); transition: 0.3s;
         }
 
-        .tag {
-            font-size: 0.7rem; font-weight: 700;
-            padding: 4px 10px; border-radius: 10px;
-            text-transform: uppercase; letter-spacing: 0.05em;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            color: var(--text-muted);
+        .card-icon { 
+            width: 32px; height: 32px; 
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+            fill: none; stroke: currentColor;
+            transition: transform 0.3s ease;
         }
 
-        h2 { font-size: 1.5rem; margin-bottom: 12px; font-weight: 700; z-index: 2; }
-        
-        p.desc {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            flex-grow: 1;
-            z-index: 2;
-            margin-bottom: 25px;
-        }
+        .card:hover .icon-wrapper { transform: scale(1.05); }
+        .card:hover .card-icon { transform: scale(1.1); }
 
-        .features {
-            display: flex; gap: 8px; flex-wrap: wrap; z-index: 2;
-        }
-        
-        .feat-badge {
-            font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;
-            background: rgba(0,0,0,0.3); color: var(--text-muted);
-            border: 1px solid var(--border);
-        }
-
-        /* --- THEMES SPECIFIQUES --- */
-        
-        /* 1. PNG STUDIO */
+        /* Card Themes */
+        .card.png { color: var(--png-color); }
         .card.png:hover { border-color: var(--png-color); }
-        .card.png:hover .icon-box { background: var(--png-color); color: #000; box-shadow: 0 0 20px var(--png-color); border-color: transparent; }
+        .card.png:hover .icon-wrapper { background: rgba(45, 212, 191, 0.1); box-shadow: 0 0 20px rgba(45, 212, 191, 0.2); border-color: var(--png-color); }
         .card.png h2 { color: var(--png-color); }
 
-        /* 2. FUSIONNEUR */
+        .card.zip { color: var(--zip-color); }
         .card.zip:hover { border-color: var(--zip-color); }
-        .card.zip:hover .icon-box { background: var(--zip-color); color: #fff; box-shadow: 0 0 20px var(--zip-color); border-color: transparent; }
+        .card.zip:hover .icon-wrapper { background: rgba(99, 102, 241, 0.1); box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); border-color: var(--zip-color); }
         .card.zip h2 { color: var(--zip-color); }
 
-        /* 3. RESIZER */
+        .card.res { color: var(--res-color); }
         .card.res:hover { border-color: var(--res-color); }
-        .card.res:hover .icon-box { background: var(--res-color); color: #fff; box-shadow: 0 0 20px var(--res-color); border-color: transparent; }
+        .card.res:hover .icon-wrapper { background: rgba(168, 85, 247, 0.1); box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); border-color: var(--res-color); }
         .card.res h2 { color: var(--res-color); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .tag { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 10px; text-transform: uppercase; background: var(--bg-badge); border: 1px solid var(--border); color: var(--text-muted); }
+        h2 { font-size: 1.5rem; margin-bottom: 12px; font-weight: 700; z-index: 2; }
+        p.desc { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; flex-grow: 1; z-index: 2; margin-bottom: 25px; }
+        .features { display: flex; gap: 8px; flex-wrap: wrap; z-index: 2; }
+        .feat-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; background: var(--bg-badge); color: var(--text-muted); border: 1px solid var(--border); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* FOOTER STYLING - NOVA STYLE */
+        footer { 
+            margin-top: 80px; 
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        footer:hover { opacity: 1; }
+        
+        .footer-copy { font-size: 0.85rem; color: var(--text-muted); }
+        .footer-slogan { 
+            font-size: 0.75rem; 
+            font-weight: 900; 
+            letter-spacing: 0.3em; 
+            text-transform: uppercase; 
+            background: linear-gradient(to right, var(--text-muted), var(--text-main), var(--text-muted));
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent;
+            opacity: 0.8;
         }
 
-        footer {
-            margin-top: 80px;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            opacity: 0.5;
+        @media (max-width: 600px) {
+            header { margin-bottom: 30px; }
+            .theme-toggle { position: relative; margin-left: auto; margin-right: auto; margin-bottom: 20px; top: auto; right: auto; }
+            h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
     <header>
-        <div class="brand-badge">WEB TOOLS COLLECTION</div>
-        <h1>OMEGA SUITE</h1>
-        <p class="subtitle">Vos outils de production essentiels, repensés.</p>
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+        <div class="header-content">
+            <div class="brand-badge">NOVA CORPORATION</div>
+            <h1>OMEGA SUITE</h1>
+            <p class="subtitle">Your essential production tools, reimagined.</p>
+        </div>
     </header>
 
     <div class="grid-container">
         
         <a href="png%20fichier.html" class="card png" onmousemove="handleMouseMove(event)">
             <div class="card-header">
-                <div class="icon-box">🪄</div>
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24">
+                        <path d="M15 8h.01" />
+                        <rect x="4" y="4" width="16" height="16" rx="3" />
+                        <path d="M4 15l4-4a3 5 0 0 1 3 0l5 5" />
+                        <path d="M14 14l1-1a3 5 0 0 1 3 0l2 2" />
+                    </svg>
+                </div>
                 <span class="tag">UPDATED</span>
             </div>
             <h2>Studio PNG Pro</h2>
-            <p class="desc">Convertissez et détourez vos images intelligemment. Supprimez les fonds blancs ou unis, gérez la tolérance et exportez en masse.</p>
-            <div class="features">
-                <span class="feat-badge">Détourage Auto</span>
-                <span class="feat-badge">Mode Contigu</span>
-                <span class="feat-badge">Galerie Live</span>
-            </div>
+            <p class="desc">Smart color keying. Transparency, contiguous mode, and bulk export capabilities.</p>
+            <div class="features"><span class="feat-badge">Auto Keying</span><span class="feat-badge">Transparency</span></div>
         </a>
 
         <a href="dossier.html" class="card zip" onmousemove="handleMouseMove(event)">
             <div class="card-header">
-                <div class="icon-box">📂</div>
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 12l10 5 10-5" />
+                        <path d="M2 17l10 5 10-5" />
+                    </svg>
+                </div>
                 <span class="tag">ULTIMATE</span>
             </div>
-            <h2>Fusionneur OMEGA</h2>
-            <p class="desc">Regroupez des milliers de fichiers. Triez par date ou taille, nettoyez les doublons (mode paranoïaque) et renommez en série.</p>
-            <div class="features">
-                <span class="feat-badge">Tri Avancé</span>
-                <span class="feat-badge">Dédoublonnage</span>
-                <span class="feat-badge">Renommage</span>
-            </div>
+            <h2>Fusion Omega</h2>
+            <p class="desc">Merge, sort, deduplicate, and rename thousands of files instantly. The ultimate file manager.</p>
+            <div class="features"><span class="feat-badge">Advanced Sort</span><span class="feat-badge">Batch Rename</span></div>
         </a>
 
         <a href="64.html" class="card res" onmousemove="handleMouseMove(event)">
             <div class="card-header">
-                <div class="icon-box">⚡</div>
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                </div>
                 <span class="tag">GRID</span>
             </div>
-            <h2>Resizer OMEGA</h2>
-            <p class="desc">L'outil visuel par excellence. Découpez vos images en grilles pour Instagram (3x3), redimensionnez, ajoutez des watermarks et convertissez en ICO.</p>
-            <div class="features">
-                <span class="feat-badge">Grilles Insta</span>
-                <span class="feat-badge">Filtres</span>
-                <span class="feat-badge">Conversion ICO</span>
-            </div>
+            <h2>Resizer Omega</h2>
+            <p class="desc">Instagram grid splitter, resizing, and conversion. The all-in-one visual tool.</p>
+            <div class="features"><span class="feat-badge">3x3 Grid</span><span class="feat-badge">Converter</span></div>
         </a>
 
     </div>
 
     <footer>
-        &copy; 2024 Omega Suite - Tous les traitements se font localement dans votre navigateur.
+        <div class="footer-copy">&copy; 2026 Nova Corporation. All rights reserved.</div>
+        <div class="footer-slogan">Beyond the Horizon</div>
     </footer>
 
     <script>
-        // Petit script pour l'effet de lueur qui suit la souris sur les cartes
+        // --- THEME ---
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = '☀️';
+                localStorage.setItem('omegaHubTheme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = '🌙';
+                localStorage.setItem('omegaHubTheme', 'dark');
+            }
+        }
+        const savedTheme = localStorage.getItem('omegaHubTheme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+        }
+
+        // --- MOUSE EFFECT ---
         function handleMouseMove(e) {
             const card = e.currentTarget;
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
             card.style.setProperty('--mouse-x', `${x}px`);
             card.style.setProperty('--mouse-y', `${y}px`);
         }
