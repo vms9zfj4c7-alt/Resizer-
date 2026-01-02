@@ -88,8 +88,10 @@
             margin: 0;
             font-size: 2.2rem;
             background: linear-gradient(135deg, #d8b4fe 0%, #2dd4bf 100%);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            color: transparent;
             font-weight: 800;
             letter-spacing: -1px;
             filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.3));
@@ -250,6 +252,8 @@
             transition: all 0.2s;
             font-family: inherit;
             appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
         }
 
         input:focus,
@@ -265,6 +269,8 @@
 
         input[type=range] {
             -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
             background: transparent;
             height: 25px;
             margin: 0;
@@ -551,6 +557,56 @@
                 font-size: 1.8rem;
             }
 
+            @media (max-width: 480px) {
+                h1 {
+                    font-size: 1.5rem;
+                }
+
+                .upload-area {
+                    padding: 30px 15px;
+                }
+
+                .grid-inputs {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* TOOLTIPS */
+            .help-icon {
+                display: inline-flex;
+                width: 14px;
+                height: 14px;
+                background: rgba(139, 92, 246, 0.2);
+                color: var(--primary);
+                border-radius: 50%;
+                font-size: 9px;
+                align-items: center;
+                justify-content: center;
+                cursor: help;
+                margin-left: 5px;
+                position: relative;
+                border: 1px solid var(--primary);
+                vertical-align: middle;
+            }
+
+            .help-icon:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 120%;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 5px 8px;
+                border-radius: 4px;
+                font-size: 10px;
+                white-space: nowrap;
+                z-index: 100;
+                pointer-events: none;
+                border: 1px solid var(--primary);
+            }
+
+
             .title-group p {
                 font-size: 0.85rem;
             }
@@ -623,13 +679,15 @@
             <div class="title-group">
                 <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
                     <a href="index.html" class="header-btn" title="Retour accueil">🏠</a>
-
                     <h1>Resizer OMEGA</h1>
                     <span id="deviceBadge" class="device-badge">Chargement...</span>
                 </div>
                 <p>Outil professionnel de traitement d'images</p>
             </div>
-            <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+            <div style="display:flex; gap:10px;">
+                <button class="header-btn" id="langBtn" onclick="toggleLanguage()">🇫🇷</button>
+                <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+            </div>
         </header>
 
         <div class="presets-bar">
@@ -644,17 +702,20 @@
                 <div class="card-title">📏 Configuration</div>
                 <div class="input-row">
                     <div class="input-group">
-                        <label>Largeur de SORTIE (px)</label>
+                        <label>Largeur de SORTIE (px)<span class="help-icon"
+                                data-tooltip="Largeur finale en pixels">?</span></label>
                         <input type="number" id="cfgWidth" value="1080" min="1">
                     </div>
                     <div class="input-group">
-                        <label>Hauteur de SORTIE (px)</label>
+                        <label>Hauteur de SORTIE (px)<span class="help-icon"
+                                data-tooltip="Hauteur finale en pixels">?</span></label>
                         <input type="number" id="cfgHeight" value="1080" min="1">
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label>Mode de Découpage</label>
+                    <label>Mode de Découpage<span class="help-icon"
+                            data-tooltip="Découpe l'image en plusieurs morceaux">?</span></label>
                     <select id="cfgSplit" onchange="toggleGridInputs()">
                         <option value="none">Normal (Image entière)</option>
                         <option value="grid">🔪 Découpage Grille (2x2, 3x3...)</option>
@@ -663,17 +724,20 @@
 
                 <div class="input-row" id="gridInputs" style="display: none; animation: fadeIn 0.3s ease;">
                     <div class="input-group">
-                        <label style="color:var(--accent);">Nb. Colonnes (Vertical)</label>
+                        <label style="color:var(--accent);">Nb. Colonnes (Vertical)<span class="help-icon"
+                                data-tooltip="Nombre de colonnes pour la grille">?</span></label>
                         <input type="number" id="cfgCols" value="2" min="1">
                     </div>
                     <div class="input-group">
-                        <label style="color:var(--accent);">Nb. Lignes (Horizontal)</label>
+                        <label style="color:var(--accent);">Nb. Lignes (Horizontal)<span class="help-icon"
+                                data-tooltip="Nombre de lignes pour la grille">?</span></label>
                         <input type="number" id="cfgRows" value="2" min="1">
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label>Ajustement de l'image</label>
+                    <label>Ajustement de l'image<span class="help-icon"
+                            data-tooltip="Comment l'image source s'adapte aux dimensions de sortie">?</span></label>
                     <select id="cfgFit">
                         <option value="fill">Étirer (Remplir la case)</option>
                         <option value="cover">Zoomer (Garder proportions)</option>
@@ -685,7 +749,7 @@
             <div class="config-card">
                 <div class="card-title">💾 Format & Export</div>
                 <div class="input-group">
-                    <label>Format</label>
+                    <label>Format<span class="help-icon" data-tooltip="Type de fichier de sortie">?</span></label>
                     <select id="cfgFormat">
                         <option value="image/png">PNG (Transparence)</option>
                         <option value="image/jpeg">JPG (Photos)</option>
@@ -801,23 +865,334 @@
     </div>
 
     <script>
+        // --- TRADUCTIONS ---
+        let currentLang = localStorage.getItem('omegaLang') || 'fr';
+        const translations = {
+            fr: {
+                title: "Resizer OMEGA",
+                subtitle: "Outil professionnel de traitement d'images",
+                loading: "Chargement...",
+                p1080: "📱 Insta Post (4:5)",
+                pPano: "📸 Insta Pano (3x1)",
+                pGrid: "🧊 Grille Profil (3x3)",
+                pFav: "⚡ Favicon (64px)",
+                cardConfig: "📏 Configuration",
+                lWidth: "Largeur de SORTIE (px)",
+                lHeight: "Hauteur de SORTIE (px)",
+                lSplit: "Mode de Découpage",
+                oNone: "Normal (Image entière)",
+                oGrid: "🔪 Découpage Grille (2x2, 3x3...)",
+                lCols: "Nb. Colonnes (Vertical)",
+                lRows: "Nb. Lignes (Horizontal)",
+                lFit: "Ajustement de l'image",
+                oFill: "Étirer (Remplir la case)",
+                oCover: "Zoomer (Garder proportions)",
+                oContain: "Ajuster (Voir tout)",
+                cardFormat: "💾 Format & Export",
+                lFormat: "Format",
+                oPng: "PNG (Transparence)",
+                oJpg: "JPG (Photos)",
+                oWebp: "WEBP (Web)",
+                oIco: "ICO (Favicon)",
+                lQual: "Qualité:",
+                btnAdv: "⚙️ Plus d'options (Filtres, Watermark...)",
+                btnAdvHide: "🔼 Masquer options",
+                cardTrans: "🔄 Transformations",
+                lRot: "Rotation",
+                lFlip: "Miroir",
+                oFlipNone: "Aucun",
+                oFlipH: "Horizontal ↔️",
+                oFlipV: "Vertical ↕️",
+                cardStyle: "🎨 Style & Watermark",
+                lRad: "Arrondi:",
+                lFilt: "Filtre",
+                oFiltNone: "Aucun",
+                oFiltGray: "N&B",
+                oFiltSepia: "Sépia",
+                oFiltInv: "Négatif",
+                lWater: "Watermark",
+                pWater: "© Texte",
+                cardName: "🏷️ Nommage",
+                lPref: "Préfixe",
+                pPref: "Auto",
+                exName: "Ex:",
+                dropMain: "📂",
+                dropText: "Glissez vos images ici",
+                dropPaste: "Ou faites Ctrl+V pour coller",
+                prevTitle: "👁️ Aperçu (Morceau 1)",
+                statEst: "(Estimé)",
+                resTitle: "Résultat",
+                fileGen: "fichiers générés",
+                clearAll: "Tout effacer",
+                dlZip: "⬇️ Télécharger ZIP",
+                dlWait: "⏳ Calcul...",
+                dlComp: "📦 Compression...",
+                devAndroid: "Android 🤖",
+                devIOS: "iOS 🍎",
+                devWin: "Windows 💻",
+                devMac: "Mac 🖥️",
+                devUnknown: "Inconnu ❓",
+                pasteTouch: "👆 Restez appuyé pour coller",
+                pasteCmd: "Ou faites <b>Cmd ⌘ + V</b> pour coller"
+            },
+            en: {
+                title: "Resizer OMEGA",
+                subtitle: "Professional Image Processing Tool",
+                loading: "Loading...",
+                p1080: "📱 Insta Post (4:5)",
+                pPano: "📸 Insta Pano (3x1)",
+                pGrid: "🧊 Profile Grid (3x3)",
+                pFav: "⚡ Favicon (64px)",
+                cardConfig: "📏 Configuration",
+                lWidth: "OUTPUT Width (px)",
+                lHeight: "OUTPUT Height (px)",
+                lSplit: "Splitting Mode",
+                oNone: "Normal (Whole Image)",
+                oGrid: "🔪 Grid Split (2x2, 3x3...)",
+                lCols: "Nb. Columns (Vertical)",
+                lRows: "Nb. Rows (Horizontal)",
+                lFit: "Image Fit",
+                oFill: "Stretch (Fill Box)",
+                oCover: "Zoom (Keep Ratios)",
+                oContain: "Fit (See All)",
+                cardFormat: "💾 Format & Export",
+                lFormat: "Format",
+                oPng: "PNG (Transparency)",
+                oJpg: "JPG (Photos)",
+                oWebp: "WEBP (Web)",
+                oIco: "ICO (Favicon)",
+                lQual: "Quality:",
+                btnAdv: "⚙️ More Options (Filters, Watermark...)",
+                btnAdvHide: "🔼 Hide Options",
+                cardTrans: "🔄 Transformations",
+                lRot: "Rotation",
+                lFlip: "Mirror",
+                oFlipNone: "None",
+                oFlipH: "Horizontal ↔️",
+                oFlipV: "Vertical ↕️",
+                cardStyle: "🎨 Style & Watermark",
+                lRad: "Radius:",
+                lFilt: "Filter",
+                oFiltNone: "None",
+                oFiltGray: "B&W",
+                oFiltSepia: "Sepia",
+                oFiltInv: "Negative",
+                lWater: "Watermark",
+                pWater: "© Text",
+                cardName: "🏷️ Naming",
+                lPref: "Prefix",
+                pPref: "Auto",
+                exName: "Eg:",
+                dropMain: "📂",
+                dropText: "Drop images here",
+                dropPaste: "Or Ctrl+V to paste",
+                prevTitle: "👁️ Preview (Part 1)",
+                statEst: "(Estimated)",
+                resTitle: "Result",
+                fileGen: "files generated",
+                clearAll: "Clear All",
+                dlZip: "⬇️ Download ZIP",
+                dlWait: "⏳ Computing...",
+                dlComp: "📦 Zipping...",
+                devAndroid: "Android 🤖",
+                devIOS: "iOS 🍎",
+                devWin: "Windows 💻",
+                devMac: "Mac 🖥️",
+                devUnknown: "Unknown ❓",
+                pasteTouch: "👆 Long press to paste",
+                pasteCmd: "Or <b>Cmd ⌘ + V</b> to paste"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            localStorage.setItem('omegaLang', currentLang);
+            updateUI_Lang();
+        }
+
+        function updateUI_Lang() {
+            const t = translations[currentLang];
+            document.getElementById('langBtn').innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
+
+            // Header
+            document.querySelector('.title-group h1').innerText = t.title;
+            document.querySelector('.title-group p').innerText = t.subtitle;
+            const badge = document.getElementById('deviceBadge');
+            if (badge.innerText === "Chargement..." || badge.innerText === "Loading...") badge.innerText = t.loading;
+
+            // Presets
+            const presets = document.querySelectorAll('.preset-btn');
+            if (presets[0]) presets[0].innerText = t.p1080;
+            if (presets[1]) presets[1].innerText = t.pPano;
+            if (presets[2]) presets[2].innerText = t.pGrid;
+            if (presets[3]) presets[3].innerText = t.pFav;
+
+            // Helper for setting label text relative to input
+            const setLabel = (inputInfo, text) => {
+                // Try finding label via input group structure
+                // inputInfo can be ID or Element
+                const el = typeof inputInfo === 'string' ? document.getElementById(inputInfo) : inputInfo;
+                if (!el) return;
+                // Case 1: Previous sibling
+                let prev = el.previousElementSibling;
+                if (prev && prev.tagName === 'LABEL') { prev.innerText = text; return; }
+                // Case 2: Parent previous sibling (if wrapped)
+                // Case 3: Inside input-group div, label is before input
+                const parent = el.closest('.input-group');
+                if (parent) {
+                    const label = parent.querySelector('label');
+                    if (label) label.innerText = text;
+                }
+            };
+            const setOpt = (id, val, txt) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const opt = el.querySelector(`option[value="${val}"]`);
+                    if (opt) opt.innerText = txt;
+                }
+            };
+
+            // Config Cards
+            // 0: Config
+            setLabel('cfgWidth', t.lWidth);
+            setLabel('cfgHeight', t.lHeight);
+            setLabel('cfgSplit', t.lSplit);
+            setOpt('cfgSplit', 'none', t.oNone);
+            setOpt('cfgSplit', 'grid', t.oGrid);
+
+            setLabel('cfgCols', t.lCols); // "Nb. Colonnes (Vertical)"
+            setLabel('cfgRows', t.lRows); // "Nb. Lignes (Horizontal)"
+
+            setLabel('cfgFit', t.lFit);
+            setOpt('cfgFit', 'fill', t.oFill);
+            setOpt('cfgFit', 'cover', t.oCover);
+            setOpt('cfgFit', 'contain', t.oContain);
+
+            // 1: Format
+            setLabel('cfgFormat', t.lFormat);
+            setOpt('cfgFormat', 'image/png', t.oPng);
+            setOpt('cfgFormat', 'image/jpeg', t.oJpg);
+            setOpt('cfgFormat', 'image/webp', t.oWebp);
+            setOpt('cfgFormat', 'image/x-icon', t.oIco);
+
+            // Quality Label special case: "Qualité: <span...>...</span>"
+            const grpQual = document.getElementById('cfgQuality').closest('.input-group');
+            if (grpQual) {
+                const l = grpQual.querySelector('label');
+                const v = document.getElementById('qualityVal').innerText;
+                l.innerHTML = `${t.lQual} <span id="qualityVal">${v}</span>`;
+            }
+
+            // Advanced Button
+            const advBtn = document.getElementById('toggleAdvancedBtn');
+            const grid = document.getElementById('advancedGrid');
+            if (grid.style.display === 'none') advBtn.innerText = t.btnAdv;
+            else advBtn.innerText = t.btnAdvHide;
+
+            // 2: Transform
+            setLabel('cfgRotate', t.lRot);
+            setLabel('cfgFlip', t.lFlip);
+            setOpt('cfgFlip', 'none', t.oFlipNone);
+            setOpt('cfgFlip', 'horizontal', t.oFlipH);
+            setOpt('cfgFlip', 'vertical', t.oFlipV);
+
+            // 3: Style
+            // Radius Label special: "Arrondi: <span...>...</span>"
+            const grpRad = document.getElementById('cfgRadius').closest('.input-group');
+            if (grpRad) {
+                const l = grpRad.querySelector('label');
+                const v = document.getElementById('radiusVal').innerText;
+                l.innerHTML = `${t.lRad} <span id="radiusVal">${v}</span>`;
+            }
+
+            setLabel('cfgFilter', t.lFilt);
+            setOpt('cfgFilter', 'none', t.oFiltNone);
+            setOpt('cfgFilter', 'grayscale', t.oFiltGray);
+            setOpt('cfgFilter', 'sepia', t.oFiltSepia);
+            setOpt('cfgFilter', 'invert', t.oFiltInv);
+
+            setLabel('cfgWatermark', t.lWater);
+            document.getElementById('cfgWatermark').placeholder = t.pWater;
+
+            // 4: Naming
+            setLabel('cfgPrefix', t.lPref);
+            document.getElementById('cfgPrefix').placeholder = t.pPref;
+            // Example Text
+            const pEx = document.querySelector('.config-card p[style*="size: 0.7rem"]'); // heuristic
+            if (!pEx) {
+                // Try looking near cfgPrefix
+                const card = document.getElementById('cfgPrefix').closest('.config-card');
+                if (card) {
+                    const p = card.querySelector('p');
+                    if (p) {
+                        const v = document.getElementById('previewName').innerText;
+                        p.innerHTML = `${t.exName} <span id="previewName">${v}</span>`;
+                    }
+                }
+            }
+
+            // Drop Zone
+            const dz = document.getElementById('dropZone');
+            if (dz) {
+                const p = dz.querySelector('p');
+                if (p) p.innerText = t.dropText;
+            }
+
+            // Preview
+            const prevHead = document.querySelector('.preview-header div:first-child');
+            if (prevHead) prevHead.innerText = t.prevTitle;
+
+            // Stats
+            const statEst = document.getElementById('prevSize');
+            if (statEst && statEst.parentElement) {
+                // The structure is <div>💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
+                // We want to update (Estimé) but keep the HTML before
+                // Safest to just replace text node after the <b>
+                const parent = statEst.parentElement.parentElement; // div.stat-item -> b -> span ... wait.
+                // 800: <div class="stat-item">💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
+                // parent is div.stat-item
+                if (parent && parent.className === 'stat-item') {
+                    // Check if it's the second stat item
+                    if (parent.innerText.includes('Estimé') || parent.innerText.includes('Estimated')) {
+                        const b = parent.querySelector('b');
+                        parent.innerHTML = `💾 ${b.outerHTML} ${t.statEst}`;
+                    }
+                }
+            }
+
+            // Gallery Header
+            const galHead = document.querySelector('.gallery-header h3');
+            if (galHead) {
+                const span = document.getElementById('fileCount').outerHTML;
+                galHead.innerHTML = `${t.resTitle} (${span} ${t.fileGen})`;
+            }
+            const clrBtn = document.querySelector('.clear-btn');
+            if (clrBtn) clrBtn.innerText = t.clearAll;
+
+            // Download Btn
+            const zipBtn = document.getElementById('zipBtn');
+            // Only update if not "Computing" or "Zipping"
+            // Actually those are transient. If we switch lang while zipping, it's edge case.
+            // Reset to default text if we think it's idle.
+            const txt = zipBtn.innerText;
+            if (!txt.includes('waiting') && !txt.includes('...')) {
+                zipBtn.innerText = t.dlZip;
+            }
+
+            detectDevice();
+        }
+
         // --- THEME LOGIC ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
             const isDark = body.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
 
-            if (isDark) {
-                body.setAttribute('data-theme', 'light');
-                btn.innerText = '☀️';
-                localStorage.setItem('resizerOmegaTheme', 'light');
-                updateFavicon('light');
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                btn.innerText = '🌙';
-                localStorage.setItem('resizerOmegaTheme', 'dark');
-                updateFavicon('dark');
-            }
+            body.setAttribute('data-theme', newTheme);
+            btn.innerText = isDark ? '☀️' : '🌙';
+            localStorage.setItem('resizerOmegaTheme', newTheme);
+            updateFavicon(newTheme);
         }
 
         function updateFavicon(theme) {
@@ -834,6 +1209,10 @@
             document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
             updateFavicon(savedTheme);
         }
+
+        // Init Lang
+        updateUI_Lang(); // Initial call
+
 
         let sourceFiles = [];
         let processedBlobs = [];
