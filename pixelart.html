@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pixel Scanner OMEGA - Game Boy Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;600;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-body: #09090b;
+      --primary: #a855f7;
+      --primary-glow: rgba(168, 85, 247, 0.4);
+      --accent: #2dd4bf;
+      --gb-plastic: #d8d8d8;
+      --text-main: #f8fafc;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-body);
+      background-image:
+        radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(45, 212, 191, 0.15), transparent 25%);
+      color: var(--text-main);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #d8b4fe 0%, #2dd4bf 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 15px;
+    }
+
+    .device-badge {
+      font-size: 0.7rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: rgba(45, 212, 191, 0.1);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .header-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      position: absolute;
+      left: 20px;
+      top: 20px;
+    }
+
+    .header-btn:hover {
+      transform: scale(1.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+
+    .gameboy {
+      background: var(--gb-plastic);
+      width: 400px;
+      padding: 40px;
+      border-radius: 15px 15px 80px 15px;
+      box-shadow: inset -5px -5px 10px #b0b0b0, inset 5px 5px 10px #ffffff, 0 20px 50px rgba(0, 0, 0, 0.8);
+      position: relative;
+      border: 1px solid #999;
+    }
+
+    .screen-frame {
+      background: #222;
+      padding: 30px 45px 25px 55px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 20px var(--primary-glow);
+      position: relative;
+    }
+
+    .battery-group {
+      position: absolute;
+      left: 15px;
+      top: 40%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .led-dot {
+      width: 10px;
+      height: 10px;
+      background: #3d0000;
+      border-radius: 50%;
+    }
+
+    .led-dot.active {
+      background: #ff0000;
+      box-shadow: 0 0 8px #ff0000;
+    }
+
+    .battery-text {
+      font-size: 5px;
+      color: #999;
+      font-family: sans-serif;
+    }
+
+    .canvas-container {
+      width: 100%;
+      aspect-ratio: 1.1 / 1;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
+      image-rendering: pixelated;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .d-pad {
+      width: 90px;
+      height: 90px;
+      position: relative;
+    }
+
+    .d-pad-h,
+    .d-pad-v {
+      background: #333;
+      position: absolute;
+      border-radius: 3px;
+    }
+
+    .d-pad-h {
+      width: 90px;
+      height: 30px;
+      top: 30px;
+    }
+
+    .d-pad-v {
+      width: 30px;
+      height: 90px;
+      left: 30px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      transform: rotate(-15deg);
+    }
+
+    .btn-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .btn-omega {
+      width: 55px;
+      height: 55px;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 4px 10px var(--primary-glow);
+      cursor: pointer;
+      color: white;
+      font-family: 'Press Start 2P';
+      font-size: 10px;
+      transition: 0.2s;
+    }
+
+    .btn-omega:active {
+      transform: scale(0.9);
+    }
+
+    .btn-omega:disabled {
+      background: #777;
+      box-shadow: none;
+      opacity: 0.5;
+    }
+
+    /* BOUTONS BAS ALIGNÉS CORRECTIONS ICI */
+    .bottom-menu {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 50px;
+      padding-right: 20px;
+    }
+
+    .menu-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-pill {
+      width: 55px;
+      height: 14px;
+      background: #999;
+      border-radius: 15px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #777;
+      /* On enlève la rotation ici pour que ce soit droit */
+    }
+
+    .btn-pill:active {
+      transform: translate(1px, 1px);
+      box-shadow: none;
+    }
+
+    .label {
+      font-size: 7px;
+      color: #555;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <a href="index.html" class="header-btn" title="Retour accueil">🏠</a>
+    <h1>PIXEL SCANNER OMEGA</h1>
+    <span id="deviceBadge" class="device-badge">Détection...</span>
+  </header>
+
+  <div class="gameboy" id="dropZone">
+    <div class="screen-frame">
+      <div class="battery-group">
+        <div class="led-dot" id="led"></div>
+        <div class="battery-text">PWR</div>
+      </div>
+      <div class="canvas-container"><canvas id="c"></canvas></div>
+    </div>
+
+    <div class="controls">
+      <div class="d-pad">
+        <div class="d-pad-h"></div>
+        <div class="d-pad-v"></div>
+      </div>
+
+      <div class="action-buttons">
+        <div class="btn-unit">
+          <button id="download" class="btn-omega" disabled>B</button>
+          <div class="label">SAVE</div>
+        </div>
+        <div class="btn-unit">
+          <button id="cta" class="btn-omega" disabled>A</button>
+          <div class="label">SCAN</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-menu">
+      <div class="menu-unit">
+        <label for="upload" class="btn-pill"></label>
+        <div class="label">SELECT</div>
+      </div>
+      <div class="menu-unit">
+        <div class="btn-pill" onclick="location.reload()"></div>
+        <div class="label">RESET</div>
+      </div>
+    </div>
+
+    <input type="file" id="upload" accept="image/*">
+  </div>
+
+  <script>
+    function detectDevice() {
+      const ua = navigator.userAgent;
+      const badge = document.getElementById('deviceBadge');
+      let type = "Web 🌐"; let color = "#a855f7";
+      if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; }
+      else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; }
+      else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; }
+      badge.innerText = type; badge.style.borderColor = color; badge.style.color = color;
+      badge.style.background = `${color}15`;
+    }
+
+    const PIXEL_SIZE = 12; const SCAN_SPEED = 7;
+    const c = document.getElementById("c"); const ctx = c.getContext("2d");
+    const btnScan = document.getElementById("cta"); const btnDownload = document.getElementById("download");
+    const inputUpload = document.getElementById("upload"); const led = document.getElementById("led");
+
+    let img = new Image(); let pixelatedCanvas = null; let y = 0; let anim = null;
+    detectDevice();
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => { img.src = e.target.result; };
+      reader.readAsDataURL(file);
+    }
+
+    inputUpload.onchange = (e) => handleFile(e.target.files[0]);
+    window.onpaste = (e) => {
+      const items = e.clipboardData.items;
+      for (let i of items) if (i.kind === 'file') handleFile(i.getAsFile());
+    };
+
+    img.onload = () => {
+      const ratio = Math.min(400 / img.width, 360 / img.height);
+      c.width = img.width * ratio; c.height = img.height * ratio;
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      pixelatedCanvas = document.createElement('canvas');
+      pixelatedCanvas.width = c.width; pixelatedCanvas.height = c.height;
+      const pCtx = pixelatedCanvas.getContext('2d');
+      const temp = document.createElement('canvas');
+      temp.width = Math.max(1, c.width / PIXEL_SIZE); temp.height = Math.max(1, c.height / PIXEL_SIZE);
+      const tCtx = temp.getContext('2d');
+      tCtx.imageSmoothingEnabled = false; pCtx.imageSmoothingEnabled = false;
+      tCtx.drawImage(img, 0, 0, temp.width, temp.height);
+      pCtx.drawImage(temp, 0, 0, temp.width, temp.height, 0, 0, c.width, c.height);
+      btnScan.disabled = false; btnDownload.disabled = true; y = 0;
+    };
+
+    function scan() {
+      y += SCAN_SPEED;
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, c.width, y); ctx.clip();
+      ctx.drawImage(pixelatedCanvas, 0, 0); ctx.restore();
+      if (y < c.height) {
+        ctx.strokeStyle = "#2dd4bf"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke();
+        anim = requestAnimationFrame(scan);
+      } else { btnDownload.disabled = false; led.classList.remove('active'); }
+    }
+
+    btnScan.onclick = () => { y = 0; cancelAnimationFrame(anim); led.classList.add('active'); scan(); };
+    btnDownload.onclick = () => {
+      const a = document.createElement('a'); a.download = 'omega-pixel.png';
+      a.href = c.toDataURL(); a.click();
+    };
+  </script>
+</body>
+
+</html>

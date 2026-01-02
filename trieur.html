@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trieur OMEGA - Mobile Edition</title>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    
+
     <style>
         /* --- STYLES GLOBAUX (Identiques au précédent) --- */
         :root {
@@ -39,162 +40,439 @@
             --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
             font-family: 'Outfit', system-ui, sans-serif;
             background-color: var(--bg-body);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.15), transparent 25%),
                 radial-gradient(circle at 85% 30%, rgba(45, 212, 191, 0.15), transparent 25%);
             background-attachment: fixed;
             color: var(--text-main);
-            margin: 0; padding: 20px; padding-bottom: 140px;
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .main-container { 
-            max-width: 900px; width: 100%; 
-            display: flex; flex-direction: column; gap: 25px; 
+        .main-container {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
             animation: fadeIn 0.6s ease;
         }
 
         /* HEADER */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
         .title-group h1 {
-            margin: 0; font-size: 2.2rem;
+            margin: 0;
+            font-size: 2.2rem;
             background: linear-gradient(135deg, #d8b4fe 0%, #2dd4bf 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 800; letter-spacing: -1px;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
             filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.3));
         }
-        .title-group p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.95rem; font-weight: 300; }
-        
+
+        .title-group p {
+            margin: 5px 0 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
         .device-badge {
-            font-size: 0.75rem; padding: 4px 10px; border-radius: 20px;
-            border: 1px solid var(--border); font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.05em; background: rgba(255,255,255,0.05);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-muted);
         }
 
-        .header-actions { display: flex; gap: 10px; }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
         .header-btn {
-            background: var(--bg-card); border: 1px solid var(--border);
-            color: var(--text-main); width: 42px; height: 42px; border-radius: 50%;
-            cursor: pointer; font-size: 1.2rem; transition: all 0.3s;
-            backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-decoration: none;
         }
-        .header-btn:hover { transform: rotate(15deg) scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
-        .header-btn.lang-btn { font-size: 1rem; font-weight: 800; }
+
+        .header-btn:hover {
+            transform: rotate(15deg) scale(1.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .header-btn.lang-btn {
+            font-size: 1rem;
+            font-weight: 800;
+        }
 
         /* CARDS & INPUTS */
         .config-card {
-            background: var(--bg-card); padding: 24px; border-radius: 24px;
-            border: 1px solid var(--border); box-shadow: var(--shadow);
-            backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 18px;
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
             transition: transform 0.3s ease;
         }
-        
-        .card-header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
-        .card-title { font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
-        
-        .input-group { display: flex; flex-direction: column; flex: 1; gap: 8px; }
-        label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
 
-        input[type="text"], input[type="number"] {
-            background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border);
-            padding: 14px; border-radius: 12px; font-size: 1rem; outline: none; width: 100%;
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
 
-        input[type=range] { -webkit-appearance: none; background: transparent; height: 25px; width: 100%; }
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            height: 25px;
+            width: 100%;
+        }
+
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
-            background: var(--primary); cursor: pointer; margin-top: -8px;
-            box-shadow: 0 0 10px var(--primary-glow); border: 2px solid white;
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px var(--primary-glow);
+            border: 2px solid white;
         }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: var(--bg-input); border-radius: 10px; border: 1px solid var(--border); }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
 
         /* DROP ZONE */
         .drop-zone {
-            border: 2px dashed var(--border); border-radius: 24px; padding: 40px 20px;
-            text-align: center; background: rgba(139, 92, 246, 0.03); 
-            transition: all 0.3s ease; cursor: pointer;
+            border: 2px dashed var(--border);
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(139, 92, 246, 0.03);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .drop-zone:active { transform: scale(0.98); background: rgba(139, 92, 246, 0.1); }
-        .drop-zone span { font-size: 3rem; display: block; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+
+        .drop-zone:active {
+            transform: scale(0.98);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .drop-zone span {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
         .paste-hint {
-            font-size: 0.8rem; color: var(--accent); font-weight: 600;
-            background: rgba(45, 212, 191, 0.1); padding: 6px 16px; border-radius: 20px;
-            display: inline-block; margin-top: 15px; border: 1px solid rgba(45, 212, 191, 0.2);
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 600;
+            background: rgba(45, 212, 191, 0.1);
+            padding: 6px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 15px;
+            border: 1px solid rgba(45, 212, 191, 0.2);
         }
 
         /* BUTTONS */
         .btn-action {
-            background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; border: none; padding: 16px;
-            border-radius: 16px; font-weight: 700; cursor: pointer; font-size: 1rem;
-            box-shadow: 0 10px 25px -5px var(--primary-glow); transition: transform 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 10px 25px -5px var(--primary-glow);
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        .btn-action:hover { transform: scale(1.02); }
+
+        .btn-action:hover {
+            transform: scale(1.02);
+        }
 
         /* TIMELINE & GALLERY */
         .timeline-container {
-            display: flex; align-items: center; justify-content: space-between; gap: 15px;
-            margin-top: 15px; padding: 15px; background: var(--bg-input); border-radius: 16px; border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-input);
+            border-radius: 16px;
+            border: 1px solid var(--border);
         }
-        .timeline-item { text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; }
+
+        .timeline-item {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .photo-thumb {
-            width: 70px; height: 70px; object-fit: cover; border-radius: 12px;
-            border: 2px solid var(--border); margin-bottom: 5px; background: #000;
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            margin-bottom: 5px;
+            background: #000;
         }
-        .timeline-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-        
+
+        .timeline-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
         .toggle-btn {
-            background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);
-            padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; white-space: nowrap;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
         }
-        
+
         .hidden-gallery {
-            display: none; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px;
-            margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border);
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border);
         }
-        .hidden-gallery img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
-        .meta-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .hidden-gallery img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .meta-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .badge {
-            background: rgba(45, 212, 191, 0.1); color: var(--accent); border: 1px solid rgba(45, 212, 191, 0.2);
-            padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+            background: rgba(45, 212, 191, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(45, 212, 191, 0.2);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
         }
 
         /* FLOATING FOOTER */
         .floating-action {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--border);
-            padding: 10px 10px 10px 25px; border-radius: 60px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            display: none; justify-content: space-between; align-items: center; z-index: 100; animation: slideUp 0.4s;
-        }
-        .download-btn {
-            background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; border: none; padding: 14px 28px;
-            border-radius: 50px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: 0 10px 25px -5px var(--primary-glow);
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 10px 10px 10px 25px;
+            border-radius: 60px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            animation: slideUp 0.4s;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 10px 25px -5px var(--primary-glow);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
 
         @media (max-width: 600px) {
-            body { padding: 15px; padding-bottom: 120px; }
-            header { flex-direction: row; gap: 10px; }
-            .title-group h1 { font-size: 1.8rem; }
-            .floating-action { bottom: 20px; width: calc(100% - 30px); }
-            .timeline-container { gap: 10px; }
-            .photo-thumb { width: 50px; height: 50px; }
+            body {
+                padding: 15px;
+                padding-bottom: 120px;
+            }
+
+            header {
+                flex-direction: row;
+                gap: 10px;
+            }
+
+            .title-group h1 {
+                font-size: 1.8rem;
+            }
+
+            .floating-action {
+                bottom: 20px;
+                width: calc(100% - 30px);
+            }
+
+            .timeline-container {
+                gap: 10px;
+            }
+
+            .photo-thumb {
+                width: 50px;
+                height: 50px;
+            }
         }
-        #fileInput { display: none; }
+
+        #fileInput {
+            display: none;
+        }
     </style>
 </head>
+
 <body data-theme="dark">
 
     <div class="main-container">
@@ -202,7 +480,7 @@
             <div class="title-group">
                 <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
                     <a href="index.html" class="header-btn" title="Home">🏠</a>
-                    
+
                     <h1 data-i18n="title">Trieur OMEGA</h1>
                     <span id="deviceBadge" class="device-badge">...</span>
                 </div>
@@ -216,7 +494,7 @@
 
         <div class="config-card">
             <div class="card-title" data-i18n="configTitle">⚙️ Configuration du Tri</div>
-            
+
             <div class="input-group">
                 <div class="card-header-row" style="margin-bottom:0">
                     <label data-i18n="gapLabel">Sensibilité de séparation</label>
@@ -225,7 +503,8 @@
                     </label>
                 </div>
                 <input type="range" id="timeGap" min="1" max="48" value="4" step="1">
-                <p style="font-size:0.75rem; color:var(--text-muted); margin:0" data-i18n="gapDesc">Un nouveau dossier est créé si plus de X heures séparent deux photos.</p>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin:0" data-i18n="gapDesc">Un nouveau dossier
+                    est créé si plus de X heures séparent deux photos.</p>
             </div>
 
             <div class="drop-zone" id="dropZone">
@@ -254,7 +533,7 @@
     <script>
         // --- 1. LOCALISATION & TRADUCTION ---
         let currentLang = localStorage.getItem('trieurLang') || 'fr';
-        
+
         const translations = {
             fr: {
                 title: "Trieur OMEGA",
@@ -331,7 +610,7 @@
         function updateUI() {
             // Update lang button
             document.getElementById('langBtn').innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
-            
+
             // Update static texts
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -341,8 +620,8 @@
             });
 
             // Update dynamic components
-            detectDevice(); 
-            
+            detectDevice();
+
             // Re-render interface if results exist
             if (globalGroupsData.length > 0) renderInterface();
         }
@@ -352,7 +631,7 @@
             const body = document.body;
             const btn = document.getElementById('themeBtn');
             const isDark = body.getAttribute('data-theme') === 'dark';
-            
+
             if (isDark) {
                 body.setAttribute('data-theme', 'light');
                 btn.innerText = '☀️';
@@ -368,21 +647,21 @@
             const ua = navigator.userAgent;
             const badge = document.getElementById('deviceBadge');
             const hint = document.getElementById('pasteHint');
-            
-            let type = "Web"; 
-            let color = "#94a3b8"; 
+
+            let type = "Web";
+            let color = "#94a3b8";
             let pasteText = t('pasteCtrl');
-            
-            if (/Android/i.test(ua)) { 
-                type = t('deviceAndroid'); color = "#10b981"; pasteText = t('pasteTouch'); 
-            } else if (/iPhone|iPad|iPod/i.test(ua)) { 
-                type = t('deviceIOS'); color = "#ef4444"; pasteText = t('pasteTouch'); 
-            } else if (/Windows/i.test(ua)) { 
-                type = t('deviceWin'); color = "#3b82f6"; 
-            } else if (/Macintosh/i.test(ua)) { 
-                type = t('deviceMac'); color = "#f472b6"; pasteText = t('pasteCmd'); 
+
+            if (/Android/i.test(ua)) {
+                type = t('deviceAndroid'); color = "#10b981"; pasteText = t('pasteTouch');
+            } else if (/iPhone|iPad|iPod/i.test(ua)) {
+                type = t('deviceIOS'); color = "#ef4444"; pasteText = t('pasteTouch');
+            } else if (/Windows/i.test(ua)) {
+                type = t('deviceWin'); color = "#3b82f6";
+            } else if (/Macintosh/i.test(ua)) {
+                type = t('deviceMac'); color = "#f472b6"; pasteText = t('pasteCmd');
             }
-            
+
             if (badge) { badge.innerText = type; badge.style.borderColor = color; badge.style.color = color; }
             if (hint) { hint.innerHTML = pasteText; }
         }
@@ -414,7 +693,7 @@
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
         function handleFiles(files) {
-            if(files.length > 0) {
+            if (files.length > 0) {
                 dropZone.querySelector('p').innerText = `${files.length} ${t('dropCount')}`;
                 dropZone.querySelector('span').innerText = "📸";
                 window.draggedFiles = files;
@@ -427,12 +706,12 @@
             const gapHours = parseInt(document.getElementById('timeGap').value);
             const btn = document.getElementById('analyzeBtn');
             const btnTextSpan = btn.querySelector('span'); // Target span inside button
-            
+
             if (!files || files.length === 0) return alert(t('alertNoFiles'));
 
-            if(btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
+            if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
             resultsArea.innerHTML = '';
-            
+
             let photoData = [];
             for (let file of files) {
                 const date = await getExifDate(file);
@@ -445,7 +724,7 @@
             if (photoData.length > 0) {
                 let currentGroup = [photoData[0]];
                 for (let i = 1; i < photoData.length; i++) {
-                    const diffHours = (photoData[i].timestamp - photoData[i-1].timestamp) / (1000 * 3600);
+                    const diffHours = (photoData[i].timestamp - photoData[i - 1].timestamp) / (1000 * 3600);
                     if (diffHours > gapHours) {
                         groups.push(currentGroup);
                         currentGroup = [];
@@ -457,7 +736,7 @@
 
             globalGroupsData = groups.map((group, index) => {
                 const d = group[0].date;
-                const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 return {
                     defaultName: `Event_${index + 1}_${dateStr}`,
                     currentName: `Event_${index + 1}_${dateStr}`,
@@ -467,7 +746,7 @@
             });
 
             renderInterface();
-            if(btnTextSpan) btnTextSpan.innerText = t('btnReset');
+            if (btnTextSpan) btnTextSpan.innerText = t('btnReset');
         }
 
         function renderInterface() {
@@ -479,16 +758,16 @@
                 const photos = groupData.photos;
                 const start = photos[0];
                 const end = photos[photos.length - 1];
-                
+
                 const startUrl = URL.createObjectURL(start.file);
                 const endUrl = URL.createObjectURL(end.file);
-                const dateNice = start.date.toLocaleDateString(locale, { weekday:'short', day: 'numeric', month: 'short' });
-                const timeNice = start.date.toLocaleTimeString(locale, { hour: '2-digit', minute:'2-digit' });
+                const dateNice = start.date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+                const timeNice = start.date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
                 const card = document.createElement('div');
                 card.className = 'config-card';
                 card.style.animationDelay = `${index * 0.1}s`;
-                
+
                 card.innerHTML = `
                     <div class="card-header-row">
                         <div class="card-title" style="color:var(--primary)">${t('folderTitle')} #${index + 1}</div>
@@ -526,7 +805,7 @@
                 `;
                 container.appendChild(card);
             });
-            
+
             const panel = document.getElementById('actionPanel');
             const countLabel = document.getElementById('countLabel');
             panel.style.display = 'flex';
@@ -536,7 +815,7 @@
         function updateFolderName(el) {
             const id = el.getAttribute('data-id');
             let clean = el.value.replace(/[^a-zA-Z0-9_\-\s]/g, "").trim();
-            if(!clean) clean = globalGroupsData[id].defaultName;
+            if (!clean) clean = globalGroupsData[id].defaultName;
             globalGroupsData[id].currentName = clean;
         }
 
@@ -559,7 +838,7 @@
 
         function getExifDate(file) {
             return new Promise((resolve) => {
-                EXIF.getData(file, function() {
+                EXIF.getData(file, function () {
                     const exifDate = EXIF.getTag(this, "DateTimeOriginal");
                     if (exifDate) {
                         const [d, t] = exifDate.split(" ");
@@ -572,13 +851,13 @@
         }
 
         async function downloadZip() {
-            if(globalGroupsData.length === 0) return;
-            
+            if (globalGroupsData.length === 0) return;
+
             const zip = new JSZip();
             const btn = document.getElementById('zipBtn');
             const span = btn.querySelector('span');
             const oldText = t('btnDownload');
-            
+
             span.innerText = t('btnZipping');
             btn.style.opacity = "0.7";
             btn.disabled = true;
@@ -591,13 +870,13 @@
                     });
                 });
 
-                const content = await zip.generateAsync({type:"blob"});
+                const content = await zip.generateAsync({ type: "blob" });
                 saveAs(content, "Photos_Organisees.zip");
-                
+
                 span.innerText = t('btnSuccess');
-                setTimeout(() => { 
-                    span.innerText = oldText; 
-                    btn.disabled = false; 
+                setTimeout(() => {
+                    span.innerText = oldText;
+                    btn.disabled = false;
                     btn.style.opacity = "1";
                 }, 2000);
             } catch (e) {
@@ -608,4 +887,5 @@
         }
     </script>
 </body>
+
 </html>
