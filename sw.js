@@ -1,16 +1,21 @@
-const CACHE_NAME = 'omega-suite-v2'; // Bump version to force update
+const CACHE_NAME = 'omega-suite-v3'; // Bump version to force update
 const ASSETS = [
   './',
   './index.html',
   './png%20fichier.html',
   './pixelart.html',
+  './games.html',
   './64.html',
   './dossier.html',
   './trieur.html',
   './icon-dark.png',
   './icon-light.png',
   './manifest-dark.json',
-  './manifest-light.json'
+  './manifest-light.json',
+  './assets/vendor/jszip.min.js',
+  './assets/vendor/FileSaver.min.js',
+  './assets/vendor/gif.js',
+  './assets/vendor/gif.worker.js'
 ];
 
 self.addEventListener('install', (event) => {
