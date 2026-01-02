@@ -12,6 +12,10 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
+    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
+    <link rel="apple-touch-icon" href="icon-dark.png">
+    <link rel="manifest" id="appManifest" href="manifest-dark.json">
+
     <style>
         /* --- STYLES GLOBAUX (Identiques au précédent) --- */
         :root {
@@ -635,12 +639,21 @@
             if (isDark) {
                 body.setAttribute('data-theme', 'light');
                 btn.innerText = '☀️';
-                localStorage.setItem('trieurTheme', 'light');
+                localStorage.setItem('sorterOmegaTheme', 'light');
+                updateFavicon('light');
             } else {
                 body.setAttribute('data-theme', 'dark');
                 btn.innerText = '🌙';
-                localStorage.setItem('trieurTheme', 'dark');
+                localStorage.setItem('sorterOmegaTheme', 'dark');
+                updateFavicon('dark');
             }
+        }
+
+        function updateFavicon(theme) {
+            const icon = document.getElementById('appIcon');
+            const manifest = document.getElementById('appManifest');
+            if (icon) icon.href = `icon-${theme}.png`;
+            if (manifest) manifest.href = `manifest-${theme}.json`;
         }
 
         function detectDevice() {
@@ -670,105 +683,98 @@
         const savedTheme = localStorage.getItem('trieurTheme');
         if (savedTheme) {
             document.body.setAttribute('data-theme', savedTheme);
-            document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
-        }
-        updateUI(); // Set Initial Language
+            const fileInput = document.getElementById('fileInput');
 
-        // --- 3. LOGIQUE DU TRIEUR ---
-        let globalGroupsData = [];
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-
-        document.getElementById('timeGap').addEventListener('input', (e) => {
-            document.getElementById('gapValue').textContent = e.target.value;
-        });
-
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
-        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault(); dropZone.style.borderColor = 'var(--border)';
-            handleFiles(e.dataTransfer.files);
-        });
-        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-        function handleFiles(files) {
-            if (files.length > 0) {
-                dropZone.querySelector('p').innerText = `${files.length} ${t('dropCount')}`;
-                dropZone.querySelector('span').innerText = "📸";
-                window.draggedFiles = files;
-            }
-        }
-
-        async function processImages() {
-            const files = window.draggedFiles || fileInput.files;
-            const resultsArea = document.getElementById('results-area');
-            const gapHours = parseInt(document.getElementById('timeGap').value);
-            const btn = document.getElementById('analyzeBtn');
-            const btnTextSpan = btn.querySelector('span'); // Target span inside button
-
-            if (!files || files.length === 0) return alert(t('alertNoFiles'));
-
-            if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
-            resultsArea.innerHTML = '';
-
-            let photoData = [];
-            for (let file of files) {
-                const date = await getExifDate(file);
-                photoData.push({ file, date, timestamp: date.getTime() });
-            }
-
-            photoData.sort((a, b) => a.timestamp - b.timestamp);
-
-            const groups = [];
-            if (photoData.length > 0) {
-                let currentGroup = [photoData[0]];
-                for (let i = 1; i < photoData.length; i++) {
-                    const diffHours = (photoData[i].timestamp - photoData[i - 1].timestamp) / (1000 * 3600);
-                    if (diffHours > gapHours) {
-                        groups.push(currentGroup);
-                        currentGroup = [];
-                    }
-                    currentGroup.push(photoData[i]);
-                }
-                groups.push(currentGroup);
-            }
-
-            globalGroupsData = groups.map((group, index) => {
-                const d = group[0].date;
-                const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                return {
-                    defaultName: `Event_${index + 1}_${dateStr}`,
-                    currentName: `Event_${index + 1}_${dateStr}`,
-                    id: index,
-                    photos: group
-                };
+            document.getElementById('timeGap').addEventListener('input', (e) => {
+                document.getElementById('gapValue').textContent = e.target.value;
             });
 
-            renderInterface();
-            if (btnTextSpan) btnTextSpan.innerText = t('btnReset');
-        }
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
+            dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault(); dropZone.style.borderColor = 'var(--border)';
+                handleFiles(e.dataTransfer.files);
+            });
+            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-        function renderInterface() {
-            const container = document.getElementById('results-area');
-            container.innerHTML = "";
-            const locale = currentLang === 'fr' ? 'fr-FR' : 'en-US';
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    dropZone.querySelector('p').innerText = `${files.length} ${t('dropCount')}`;
+                    dropZone.querySelector('span').innerText = "📸";
+                    window.draggedFiles = files;
+                }
+            }
 
-            globalGroupsData.forEach((groupData, index) => {
-                const photos = groupData.photos;
-                const start = photos[0];
-                const end = photos[photos.length - 1];
+            async function processImages() {
+                const files = window.draggedFiles || fileInput.files;
+                const resultsArea = document.getElementById('results-area');
+                const gapHours = parseInt(document.getElementById('timeGap').value);
+                const btn = document.getElementById('analyzeBtn');
+                const btnTextSpan = btn.querySelector('span'); // Target span inside button
 
-                const startUrl = URL.createObjectURL(start.file);
-                const endUrl = URL.createObjectURL(end.file);
-                const dateNice = start.date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
-                const timeNice = start.date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+                if (!files || files.length === 0) return alert(t('alertNoFiles'));
 
-                const card = document.createElement('div');
-                card.className = 'config-card';
-                card.style.animationDelay = `${index * 0.1}s`;
+                if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
+                resultsArea.innerHTML = '';
 
-                card.innerHTML = `
+                let photoData = [];
+                for (let file of files) {
+                    const date = await getExifDate(file);
+                    photoData.push({ file, date, timestamp: date.getTime() });
+                }
+
+                photoData.sort((a, b) => a.timestamp - b.timestamp);
+
+                const groups = [];
+                if (photoData.length > 0) {
+                    let currentGroup = [photoData[0]];
+                    for (let i = 1; i < photoData.length; i++) {
+                        const diffHours = (photoData[i].timestamp - photoData[i - 1].timestamp) / (1000 * 3600);
+                        if (diffHours > gapHours) {
+                            groups.push(currentGroup);
+                            currentGroup = [];
+                        }
+                        currentGroup.push(photoData[i]);
+                    }
+                    groups.push(currentGroup);
+                }
+
+                globalGroupsData = groups.map((group, index) => {
+                    const d = group[0].date;
+                    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    return {
+                        defaultName: `Event_${index + 1}_${dateStr}`,
+                        currentName: `Event_${index + 1}_${dateStr}`,
+                        id: index,
+                        photos: group
+                    };
+                });
+
+                renderInterface();
+                if (btnTextSpan) btnTextSpan.innerText = t('btnReset');
+            }
+
+            function renderInterface() {
+                const container = document.getElementById('results-area');
+                container.innerHTML = "";
+                const locale = currentLang === 'fr' ? 'fr-FR' : 'en-US';
+
+                globalGroupsData.forEach((groupData, index) => {
+                    const photos = groupData.photos;
+                    const start = photos[0];
+                    const end = photos[photos.length - 1];
+
+                    const startUrl = URL.createObjectURL(start.file);
+                    const endUrl = URL.createObjectURL(end.file);
+                    const dateNice = start.date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+                    const timeNice = start.date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+
+                    const card = document.createElement('div');
+                    card.className = 'config-card';
+                    card.style.animationDelay = `${index * 0.1}s`;
+
+                    card.innerHTML = `
                     <div class="card-header-row">
                         <div class="card-title" style="color:var(--primary)">${t('folderTitle')} #${index + 1}</div>
                         <div class="meta-badges">
@@ -803,88 +809,88 @@
 
                     <div class="hidden-gallery" id="gallery-${index}"></div>
                 `;
-                container.appendChild(card);
-            });
+                    container.appendChild(card);
+                });
 
-            const panel = document.getElementById('actionPanel');
-            const countLabel = document.getElementById('countLabel');
-            panel.style.display = 'flex';
-            countLabel.innerText = `${globalGroupsData.length} ${t('countFolders')}`;
-        }
+                const panel = document.getElementById('actionPanel');
+                const countLabel = document.getElementById('countLabel');
+                panel.style.display = 'flex';
+                countLabel.innerText = `${globalGroupsData.length} ${t('countFolders')}`;
+            }
 
-        function updateFolderName(el) {
-            const id = el.getAttribute('data-id');
-            let clean = el.value.replace(/[^a-zA-Z0-9_\-\s]/g, "").trim();
-            if (!clean) clean = globalGroupsData[id].defaultName;
-            globalGroupsData[id].currentName = clean;
-        }
+            function updateFolderName(el) {
+                const id = el.getAttribute('data-id');
+                let clean = el.value.replace(/[^a-zA-Z0-9_\-\s]/g, "").trim();
+                if (!clean) clean = globalGroupsData[id].defaultName;
+                globalGroupsData[id].currentName = clean;
+            }
 
-        function toggleDetails(index) {
-            const gallery = document.getElementById(`gallery-${index}`);
-            if (gallery.style.display === "grid") {
-                gallery.style.display = "none";
-            } else {
-                gallery.style.display = "grid";
-                if (gallery.innerHTML === "") {
-                    globalGroupsData[index].photos.forEach(p => {
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(p.file);
-                        img.loading = "lazy";
-                        gallery.appendChild(img);
-                    });
+            function toggleDetails(index) {
+                const gallery = document.getElementById(`gallery-${index}`);
+                if (gallery.style.display === "grid") {
+                    gallery.style.display = "none";
+                } else {
+                    gallery.style.display = "grid";
+                    if (gallery.innerHTML === "") {
+                        globalGroupsData[index].photos.forEach(p => {
+                            const img = document.createElement('img');
+                            img.src = URL.createObjectURL(p.file);
+                            img.loading = "lazy";
+                            gallery.appendChild(img);
+                        });
+                    }
                 }
             }
-        }
 
-        function getExifDate(file) {
-            return new Promise((resolve) => {
-                EXIF.getData(file, function () {
-                    const exifDate = EXIF.getTag(this, "DateTimeOriginal");
-                    if (exifDate) {
-                        const [d, t] = exifDate.split(" ");
-                        resolve(new Date(d.replace(/:/g, "-") + " " + t));
-                    } else {
-                        resolve(new Date(file.lastModified));
-                    }
-                });
-            });
-        }
-
-        async function downloadZip() {
-            if (globalGroupsData.length === 0) return;
-
-            const zip = new JSZip();
-            const btn = document.getElementById('zipBtn');
-            const span = btn.querySelector('span');
-            const oldText = t('btnDownload');
-
-            span.innerText = t('btnZipping');
-            btn.style.opacity = "0.7";
-            btn.disabled = true;
-
-            try {
-                globalGroupsData.forEach(group => {
-                    const folder = zip.folder(group.currentName);
-                    group.photos.forEach(item => {
-                        folder.file(item.file.name, item.file);
+            function getExifDate(file) {
+                return new Promise((resolve) => {
+                    EXIF.getData(file, function () {
+                        const exifDate = EXIF.getTag(this, "DateTimeOriginal");
+                        if (exifDate) {
+                            const [d, t] = exifDate.split(" ");
+                            resolve(new Date(d.replace(/:/g, "-") + " " + t));
+                        } else {
+                            resolve(new Date(file.lastModified));
+                        }
                     });
                 });
+            }
 
-                const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, "Photos_Organisees.zip");
+            async function downloadZip() {
+                if (globalGroupsData.length === 0) return;
 
-                span.innerText = t('btnSuccess');
-                setTimeout(() => {
+                const zip = new JSZip();
+                const btn = document.getElementById('zipBtn');
+                const span = btn.querySelector('span');
+                const oldText = t('btnDownload');
+
+                span.innerText = t('btnZipping');
+                btn.style.opacity = "0.7";
+                btn.disabled = true;
+
+                try {
+                    globalGroupsData.forEach(group => {
+                        const folder = zip.folder(group.currentName);
+                        group.photos.forEach(item => {
+                            folder.file(item.file.name, item.file);
+                        });
+                    });
+
+                    const content = await zip.generateAsync({ type: "blob" });
+                    saveAs(content, "Photos_Organisees.zip");
+
+                    span.innerText = t('btnSuccess');
+                    setTimeout(() => {
+                        span.innerText = oldText;
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
+                    }, 2000);
+                } catch (e) {
+                    alert(t('errorZip'));
                     span.innerText = oldText;
                     btn.disabled = false;
-                    btn.style.opacity = "1";
-                }, 2000);
-            } catch (e) {
-                alert(t('errorZip'));
-                span.innerText = oldText;
-                btn.disabled = false;
+                }
             }
-        }
     </script>
 </body>
 

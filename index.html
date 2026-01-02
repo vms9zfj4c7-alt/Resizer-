@@ -7,6 +7,10 @@
     <title>OMEGA SUITE - Nova Corporation</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
 
+    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
+    <link rel="apple-touch-icon" href="icon-dark.png">
+    <link rel="manifest" id="appManifest" href="manifest-dark.json">
+
     <style>
         :root {
             --png-color: #2dd4bf;
@@ -428,6 +432,13 @@
             });
         }
 
+        function updateFavicon(theme) {
+            const icon = document.getElementById('appIcon');
+            const manifest = document.getElementById('appManifest');
+            if (icon) icon.href = `icon-${theme}.png`;
+            if (manifest) manifest.href = `manifest-${theme}.json`;
+        }
+
         // --- THEME ---
         function toggleTheme() {
             const body = document.body;
@@ -437,6 +448,7 @@
             body.setAttribute('data-theme', newTheme);
             btn.innerText = isDark ? '☀️' : '🌙';
             localStorage.setItem('omegaHubTheme', newTheme);
+            updateFavicon(newTheme);
         }
 
         // --- INIT ---
@@ -444,6 +456,7 @@
         if (savedTheme) {
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+            updateFavicon(savedTheme);
         }
         updateUI();
     </script>

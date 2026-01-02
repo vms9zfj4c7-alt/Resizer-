@@ -10,6 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
+    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
+    <link rel="apple-touch-icon" href="icon-dark.png">
+    <link rel="manifest" id="appManifest" href="manifest-dark.json">
+
     <style>
         :root {
             /* THÈME SOMBRE (Défaut) */
@@ -524,11 +528,20 @@
                 body.setAttribute('data-theme', 'light');
                 btn.innerText = '☀️';
                 localStorage.setItem('fusionOmegaTheme', 'light');
+                updateFavicon('light');
             } else {
                 body.setAttribute('data-theme', 'dark');
                 btn.innerText = '🌙';
                 localStorage.setItem('fusionOmegaTheme', 'dark');
+                updateFavicon('dark');
             }
+        }
+
+        function updateFavicon(theme) {
+            const icon = document.getElementById('appIcon');
+            const manifest = document.getElementById('appManifest');
+            if (icon) icon.href = `icon-${theme}.png`;
+            if (manifest) manifest.href = `manifest-${theme}.json`;
         }
 
         // Init Theme
@@ -536,6 +549,7 @@
         if (savedTheme) {
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+            updateFavicon(savedTheme);
         }
 
         // --- VARIABLES ---
