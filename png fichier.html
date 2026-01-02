@@ -393,6 +393,50 @@
             }
         }
 
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 900px) {
+            body {
+                padding: 10px;
+                height: auto;
+                /* Allow scrolling on mobile */
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+
+            .app-container {
+                height: auto;
+                /* Auto height for stacked content */
+            }
+
+            .editor-workspace {
+                flex-direction: column;
+            }
+
+            .editor-stage {
+                height: 50vh;
+                /* Fixed height for stage on mobile */
+                width: 100%;
+                order: 1;
+                /* Stage on top */
+            }
+
+            .editor-sidebar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                order: 2;
+                /* Controls below */
+                max-height: none;
+                /* Allow full expansion */
+                overflow-y: visible;
+            }
+
+            .header-title-group h1 {
+                font-size: 1.2rem;
+                /* Smaller title */
+            }
+        }
+
         .input-num {
             background: transparent;
             border: none;

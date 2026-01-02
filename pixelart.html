@@ -497,18 +497,38 @@
 
       <div
         style="display:flex; flex-direction:column; gap:10px; background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid var(--border);">
-        <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">PALETTE</label>
-        <select id="paletteSelect" onchange="changePalette()"
-          style="width:100%; padding:10px; border-radius:8px; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border); outline:none;">
-          <option value="normal">🎨 Couleurs Normales</option>
-          <option value="gameboy" selected>🟢 Game Boy</option>
-          <option value="bw">⚫️ Noir & Blanc</option>
-          <option value="sepia">🟤 Sépia</option>
-          <option value="cyberpunk">🟣 Cyberpunk</option>
-          <option value="vaporwave">🌸 Vaporwave</option>
-        </select>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+        <!-- PIXEL SIZE SLIDER -->
+        <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">
+          DENSITÉ PIXELS: <span id="pixelVal">64px</span>
+        </label>
+        <input type="range" id="sizeRange" min="32" max="192" step="8" value="64" onchange="updateResolution()"
+          oninput="document.getElementById('pixelVal').innerText = this.value + 'px'">
+
+        <!-- PALETTE SECTION -->
+        <div style="margin-top:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">PALETTE</label>
+            <div style="display:flex; align-items:center; gap:5px;">
+              <label style="font-size:0.7rem; color:var(--text-main);">Normal</label>
+              <input type="checkbox" id="normalModeToggle" onchange="toggleNormalMode()">
+            </div>
+          </div>
+
+          <div id="paletteControls" style="display:flex; justify-content:space-between; gap:5px;">
+            <input type="color" id="col0" value="#0f380f" onchange="updateCustomPalette()"
+              style="width:100%; height:30px; border:none; cursor:pointer;">
+            <input type="color" id="col1" value="#306230" onchange="updateCustomPalette()"
+              style="width:100%; height:30px; border:none; cursor:pointer;">
+            <input type="color" id="col2" value="#8bac0f" onchange="updateCustomPalette()"
+              style="width:100%; height:30px; border:none; cursor:pointer;">
+            <input type="color" id="col3" value="#9bbc0f" onchange="updateCustomPalette()"
+              style="width:100%; height:30px; border:none; cursor:pointer;">
+          </div>
+        </div>
+
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
           <label
             style="color:var(--text-muted); font-size:0.8rem; font-weight:bold; display:flex; align-items:center; gap:5px;">
             ✏️ MODE ÉDITEUR
@@ -653,12 +673,44 @@
     const placeholder = document.getElementById("placeholder");
     let pixels = []; // Store pixel data for manual editing/redraw
 
-    function changePalette() {
-      const select = document.getElementById('paletteSelect');
-      currentPalette = PALETTES[select.value] || PALETTES.gameboy;
-      if (pixels.length > 0) {
-        reRenderPixels();
+    // --- PIXEL SIZE & PALETTE UPDATE ---
+
+    function updateResolution() {
+      scan(); // Re-scan with new width
+    }
+
+    function toggleNormalMode() {
+      const isNormal = document.getElementById('normalModeToggle').checked;
+      const palDiv = document.getElementById('paletteControls');
+
+      if (isNormal) {
+        currentPalette = 'normal';
+        palDiv.style.opacity = '0.3';
+        palDiv.style.pointerEvents = 'none';
+      } else {
+        updateCustomPalette(); // Restore custom colors
+        palDiv.style.opacity = '1';
+        palDiv.style.pointerEvents = 'auto';
       }
+
+      // If we are switching modes, we often need to RE-SCAN to bake in values, 
+      // OR we can just reRender if we stored true colors. 
+      // Our 'pixels' array stores true RGB (p.r, p.g, p.b).
+      // So we can just Re-Render!
+      reRenderPixels();
+    }
+
+    function updateCustomPalette() {
+      const c0 = document.getElementById('col0').value;
+      const c1 = document.getElementById('col1').value;
+      const c2 = document.getElementById('col2').value;
+      const c3 = document.getElementById('col3').value;
+      currentPalette = [c0, c1, c2, c3];
+
+      // If we are currently in normal mode, don't auto-switch unless user unchecked normal
+      if (document.getElementById('normalModeToggle').checked) return;
+
+      reRenderPixels();
     }
 
     function toggleEditMode() {
@@ -671,27 +723,7 @@
       }
     }
 
-    // Canvas Click for Edit Mode
-    canvas.addEventListener('mousedown', (e) => {
-      if (!isEditMode || pixels.length === 0) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-
-      // Find which pixel column this belongs to?
-      // logic: width / numCols.
-      // We need to know 'pixelSize'. Since we draw rects of size 'pixelSize'.
-      // In render function we define pixelSize. We need to store it globally or recalculate.
-      // Simplified: We can just use getComputedStyle or active image dimensions?
-
-      // Actually, let's look at `processImage` logic below.
-      // It draws `ctx.fillStyle` then `ctx.fillRect(x, y, pixelSize, pixelSize)`.
-      // We need to store `pixelSize`.
-    });
+    // (Edit Mode handled by click listener below)
 
     // ...
     let g_pixelSize = 1;
@@ -830,22 +862,26 @@
 
       pCtx.drawImage(temp, 0, 0, temp.width, temp.height, 0, 0, canvas.width, canvas.height);
 
+      // Enable Scan
       btnScan.disabled = false;
-      btnScan.classList.add('primary'); // Ensure style
-
+      btnScan.classList.add('primary');
       btnDownload.disabled = true;
-      y = 0;
+    };
+
+    function scan() {
+      if (!img.src) return;
 
       // --- PIXELATION LOGIC (UPDATED WITH PALETTE) ---
       const w = img.width;
       const h = img.height;
 
-      // Target width from input? Default fixed or calculated?
-      const targetWidth = 64; // Standard GameBoyish width
+      // Target width from input
+      const targetWidth = parseInt(document.getElementById('sizeRange').value) || 64;
+
       const scale = targetWidth / w;
       const targetHeight = Math.floor(h * scale);
 
-      canvas.width = targetWidth * 4; // Scale up for visibility? Or keep low res?
+      canvas.width = targetWidth * 4; // Scale up for visibility
       canvas.height = targetHeight * 4;
       // Let's use 4x visual scale so pixels look big
 
@@ -911,31 +947,66 @@
           ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
         }
       }
-
-      // Set status
-      // document.getElementById('statusText').innerText = "SCAN COMPLETED"; // statusText not defined in this snippet
-    };
+      btnDownload.disabled = false;
+    }
 
     function reRenderPixels() {
       if (pixels.length === 0) return;
-      ctx.fillStyle = currentPalette[0];
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      pixels.forEach(p => {
-        ctx.fillStyle = currentPalette[p.colorIndex];
-        ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
-      });
+      if (currentPalette === 'normal') {
+        // Normal Mode Render
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pixels.forEach(p => {
+          ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
+          ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
+        });
+      } else {
+        // Palette Mode Render
+        ctx.fillStyle = currentPalette[0];
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        pixels.forEach(p => {
+          // If pixel was originally normal (-1), we need to quantize it now?
+          // Or just map it arbitrarily?
+          // Ideally we should re-quantize, but that's expensive here.
+          // We'll trust colorIndex is valid if we switched TO a palette FROM a palette.
+          // But if we switch FROM Normal TO Palette, colorIndex is -1.
+          // We need to RE-SCAN if we switch from Normal to Palette?
+          // Or just re-calculate colorIndex on the fly?
+
+          let colorIdx = p.colorIndex;
+          if (colorIdx === -1) {
+            // Re-quantize on the fly
+            const avg = (p.r + p.g + p.b) / 3;
+            if (avg > 64) colorIdx = 1;
+            if (avg > 128) colorIdx = 2;
+            if (avg > 192) colorIdx = 3;
+            else colorIdx = 0;
+            // Update pixel for future
+            p.colorIndex = colorIdx;
+          }
+
+          ctx.fillStyle = currentPalette[colorIdx];
+          ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
+        });
+      }
     }
 
     // CLICK HANDLER IMPL
     canvas.onclick = (e) => {
       if (!isEditMode || pixels.length === 0) return;
+
+      // Disable editing in Normal Mode for now
+      if (currentPalette === 'normal') {
+        alert("L'édition manuelle est désactivée en mode Couleurs Normales.");
+        return;
+      }
+
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (canvas.width / rect.width);
       const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
       // Find pixel
-      // Grid coords
       const gx = Math.floor(x / g_pixelSize) * g_pixelSize;
       const gy = Math.floor(y / g_pixelSize) * g_pixelSize;
 
