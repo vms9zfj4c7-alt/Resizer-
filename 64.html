@@ -700,6 +700,12 @@
         <div class="config-grid">
             <div class="config-card">
                 <div class="card-title">📏 Configuration</div>
+                <div class="input-row" style="margin-bottom:15px; flex-wrap:wrap;">
+                    <button class="preset-btn" onclick="applyPreset(1080, 1920, 'cover')">📱 Story</button>
+                    <button class="preset-btn" onclick="applyPreset(1080, 1080, 'contain')">🟦 Post</button>
+                    <button class="preset-btn" onclick="applyPreset(1200, 675, 'cover')">🐦 Twitter</button>
+                    <button class="preset-btn" onclick="applyPreset(1280, 720, 'cover')">📺 YouTube</button>
+                </div>
                 <div class="input-row">
                     <div class="input-group">
                         <label>Largeur de SORTIE (px)<span class="help-icon"
@@ -813,50 +819,68 @@
                         <input type="text" id="cfgWatermark" placeholder="© Texte">
                     </div>
                 </div>
-            </div>
-
-            <div class="config-card">
-                <div class="card-title">🏷️ Nommage</div>
-                <div class="input-group">
-                    <label>Préfixe</label>
-                    <input type="text" id="cfgPrefix" placeholder="Auto">
+                <!-- IMAGE WATERMARK -->
+                <div class="input-row" style="margin-top:10px;">
+                    <div class="input-group" style="flex:2">
+                        <label>Logo (Image)</label>
+                        <input type="file" id="watermarkInput" accept="image/*" style="font-size:0.8rem;">
+                    </div>
+                    <div class="input-group" style="flex:1">
+                        <label>Position</label>
+                        <select id="watermarkPos">
+                            <option value="br">Bas-Droit</option>
+                            <option value="bl">Bas-Gauche</option>
+                            <option value="tr">Haut-Droit</option>
+                            <option value="tl">Haut-Gauche</option>
+                            <option value="center">Centre</option>
+                        </select>
+                    </div>
                 </div>
-                <p style="font-size: 0.7rem; color: var(--text-muted); margin: 5px 0 0;">
-                    Ex: <span id="previewName">1_image.png</span>
-                </p>
             </div>
         </div>
 
-        <div class="drop-zone" id="dropZone">
-            <span>📂</span>
-            <p>Glissez vos images ici</p>
-            <div class="paste-hint" id="pasteHint">Ou faites Ctrl+V pour coller</div>
-            <input type="file" id="fileInput" multiple accept="image/*">
+        <div class="config-card">
+            <div class="card-title">🏷️ Nommage</div>
+            <div class="input-group">
+                <label>Préfixe</label>
+                <input type="text" id="cfgPrefix" placeholder="Auto">
+            </div>
+            <p style="font-size: 0.7rem; color: var(--text-muted); margin: 5px 0 0;">
+                Ex: <span id="previewName">1_image.png</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="drop-zone" id="dropZone">
+        <span>📂</span>
+        <p>Glissez vos images ici</p>
+        <div class="paste-hint" id="pasteHint">Ou faites Ctrl+V pour coller</div>
+        <input type="file" id="fileInput" multiple accept="image/*">
+    </div>
+
+    <div id="previewContainer" class="preview-panel">
+        <div class="preview-header">
+            <div style="font-weight:700">👁️ Aperçu (Morceau 1)</div>
+            <div class="preview-tag" id="previewTag">PNG</div>
         </div>
 
-        <div id="previewContainer" class="preview-panel">
-            <div class="preview-header">
-                <div style="font-weight:700">👁️ Aperçu (Morceau 1)</div>
-                <div class="preview-tag" id="previewTag">PNG</div>
-            </div>
-
-            <div class="preview-canvas-wrapper">
-                <img id="livePreviewImg" alt="Prévisualisation">
-            </div>
-
-            <div class="preview-stats">
-                <div class="stat-item">📏 <b><span id="prevDim">1080x1080</span>px</b></div>
-                <div class="stat-item">💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
-            </div>
+        <div class="preview-canvas-wrapper">
+            <img id="livePreviewImg" alt="Prévisualisation">
         </div>
 
-        <div id="galleryContainer" style="display:none;">
-            <div class="gallery-header">
-                <h3>Résultat (<span id="fileCount">0</span> fichiers générés)</h3>
-                <button class="clear-btn" onclick="clearAll()">Tout effacer</button>
-            </div>
-            <div class="gallery" id="gallery"></div>
+        <div class="preview-stats">
+            <div class="stat-item">📏 <b><span id="prevDim">1080x1080</span>px</b></div>
+            <div class="stat-item">💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
         </div>
+    </div>
+
+    <div id="galleryContainer" style="display:none;">
+        <div class="gallery-header">
+            <h3>Résultat (<span id="fileCount">0</span> fichiers générés)</h3>
+            <button class="clear-btn" onclick="clearAll()">Tout effacer</button>
+        </div>
+        <div class="gallery" id="gallery"></div>
+    </div>
     </div>
 
     <div class="floating-action" id="actionPanel">
@@ -876,6 +900,10 @@
                 pPano: "📸 Insta Pano (3x1)",
                 pGrid: "🧊 Grille Profil (3x3)",
                 pFav: "⚡ Favicon (64px)",
+                pOG: "🔗 Open Graph (FB/LI)",
+                pYT: "▶️ YouTube Thumbnail",
+                pStory: "📱 Insta Story (9:16)",
+                pTwitter: "🐦 Twitter Header",
                 cardConfig: "📏 Configuration",
                 lWidth: "Largeur de SORTIE (px)",
                 lHeight: "Hauteur de SORTIE (px)",
@@ -912,6 +940,13 @@
                 oFiltInv: "Négatif",
                 lWater: "Watermark",
                 pWater: "© Texte",
+                lWaterImg: "Image Watermark",
+                lWaterPos: "Position Watermark",
+                oWaterBR: "Bas-Droite",
+                oWaterBL: "Bas-Gauche",
+                oWaterTR: "Haut-Droite",
+                oWaterTL: "Haut-Gauche",
+                oWaterCenter: "Centre",
                 cardName: "🏷️ Nommage",
                 lPref: "Préfixe",
                 pPref: "Auto",
@@ -943,6 +978,10 @@
                 pPano: "📸 Insta Pano (3x1)",
                 pGrid: "🧊 Profile Grid (3x3)",
                 pFav: "⚡ Favicon (64px)",
+                pOG: "🔗 Open Graph (FB/LI)",
+                pYT: "▶️ YouTube Thumbnail",
+                pStory: "📱 Insta Story (9:16)",
+                pTwitter: "🐦 Twitter Header",
                 cardConfig: "📏 Configuration",
                 lWidth: "OUTPUT Width (px)",
                 lHeight: "OUTPUT Height (px)",
@@ -979,6 +1018,13 @@
                 oFiltInv: "Negative",
                 lWater: "Watermark",
                 pWater: "© Text",
+                lWaterImg: "Image Watermark",
+                lWaterPos: "Watermark Position",
+                oWaterBR: "Bottom-Right",
+                oWaterBL: "Bottom-Left",
+                oWaterTR: "Top-Right",
+                oWaterTL: "Top-Left",
+                oWaterCenter: "Center",
                 cardName: "🏷️ Naming",
                 lPref: "Prefix",
                 pPref: "Auto",
@@ -1026,6 +1072,10 @@
             if (presets[1]) presets[1].innerText = t.pPano;
             if (presets[2]) presets[2].innerText = t.pGrid;
             if (presets[3]) presets[3].innerText = t.pFav;
+            if (presets[4]) presets[4].innerText = t.pOG;
+            if (presets[5]) presets[5].innerText = t.pYT;
+            if (presets[6]) presets[6].innerText = t.pStory;
+            if (presets[7]) presets[7].innerText = t.pTwitter;
 
             // Helper for setting label text relative to input
             const setLabel = (inputInfo, text) => {
@@ -1113,6 +1163,13 @@
 
             setLabel('cfgWatermark', t.lWater);
             document.getElementById('cfgWatermark').placeholder = t.pWater;
+            setLabel('watermarkInput', t.lWaterImg);
+            setLabel('watermarkPos', t.lWaterPos);
+            setOpt('watermarkPos', 'br', t.oWaterBR);
+            setOpt('watermarkPos', 'bl', t.oWaterBL);
+            setOpt('watermarkPos', 'tr', t.oWaterTR);
+            setOpt('watermarkPos', 'tl', t.oWaterTL);
+            setOpt('watermarkPos', 'center', t.oWaterCenter);
 
             // 4: Naming
             setLabel('cfgPrefix', t.lPref);
@@ -1146,13 +1203,10 @@
             const statEst = document.getElementById('prevSize');
             if (statEst && statEst.parentElement) {
                 // The structure is <div>💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
-                // We want to update (Estimé) but keep the HTML before
-                // Safest to just replace text node after the <b>
-                const parent = statEst.parentElement.parentElement; // div.stat-item -> b -> span ... wait.
-                // 800: <div class="stat-item">💾 <b><span id="prevSize">~</span></b> (Estimé)</div>
                 // parent is div.stat-item
-                if (parent && parent.className === 'stat-item') {
+                if (statEst.parentElement.parentElement && statEst.parentElement.parentElement.className === 'stat-item') {
                     // Check if it's the second stat item
+                    const parent = statEst.parentElement.parentElement;
                     if (parent.innerText.includes('Estimé') || parent.innerText.includes('Estimated')) {
                         const b = parent.querySelector('b');
                         parent.innerHTML = `💾 ${b.outerHTML} ${t.statEst}`;
@@ -1172,8 +1226,6 @@
             // Download Btn
             const zipBtn = document.getElementById('zipBtn');
             // Only update if not "Computing" or "Zipping"
-            // Actually those are transient. If we switch lang while zipping, it's edge case.
-            // Reset to default text if we think it's idle.
             const txt = zipBtn.innerText;
             if (!txt.includes('waiting') && !txt.includes('...')) {
                 zipBtn.innerText = t.dlZip;
@@ -1216,6 +1268,7 @@
 
         let sourceFiles = [];
         let processedBlobs = [];
+        let watermarkImg = null; // Global variable for watermark image
 
         const els = {
             width: document.getElementById('cfgWidth'),
@@ -1232,6 +1285,8 @@
             radius: document.getElementById('cfgRadius'),
             filter: document.getElementById('cfgFilter'),
             watermark: document.getElementById('cfgWatermark'),
+            watermarkInput: document.getElementById('watermarkInput'), // New
+            watermarkPos: document.getElementById('watermarkPos'),     // New
             prefix: document.getElementById('cfgPrefix'),
             qualityVal: document.getElementById('qualityVal'),
             radiusVal: document.getElementById('radiusVal'),
@@ -1293,7 +1348,7 @@
             }
         }
 
-        const inputs = [els.width, els.height, els.split, els.cols, els.rows, els.fit, els.rotate, els.flip, els.format, els.quality, els.radius, els.filter, els.watermark, els.prefix];
+        const inputs = [els.width, els.height, els.split, els.cols, els.rows, els.fit, els.rotate, els.flip, els.format, els.quality, els.radius, els.filter, els.watermark, els.watermarkInput, els.watermarkPos, els.prefix];
         inputs.forEach(input => {
             input.addEventListener('input', () => {
                 if (input === els.quality) els.qualityVal.innerText = input.value + '%';
@@ -1347,6 +1402,26 @@
         });
         els.fileInput.addEventListener('change', (e) => handleNewFiles(e.target.files));
 
+        // Watermark Image Input Listener
+        els.watermarkInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) {
+                watermarkImg = null; // Clear watermark if no file selected
+                if (sourceFiles.length > 0) processBatch();
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    watermarkImg = img;
+                    if (sourceFiles.length > 0) processBatch();
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
         function handleNewFiles(files) {
             if (!files.length) return;
             Array.from(files).forEach(file => { if (file.type.match('image.*')) sourceFiles.push(file); });
@@ -1370,7 +1445,8 @@
                 fit: els.fit.value, rotate: parseInt(els.rotate.value), flip: els.flip.value,
                 fmt: els.format.value, qual: parseInt(els.quality.value) / 100,
                 radius: parseInt(els.radius.value), filter: els.filter.value,
-                wm: els.watermark.value, prefix: els.prefix.value.trim()
+                wm: els.watermark.value, prefix: els.prefix.value.trim(),
+                watermarkPos: els.watermarkPos.value // New
             };
 
             let previewSet = false;
@@ -1473,6 +1549,8 @@
                                     ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 2;
                                     ctx.fillText(cfg.wm, cfg.w - 5, cfg.h - 5);
                                 }
+                                // Draw image watermark if available
+                                drawWatermark(ctx, cfg.w, cfg.h, cfg.watermarkPos);
 
                                 const isIco = cfg.fmt === 'image/x-icon'; const exportFmt = isIco ? 'image/png' : cfg.fmt;
                                 canvas.toBlob((blob) => {

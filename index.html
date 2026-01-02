@@ -125,6 +125,7 @@
             font-weight: 900;
             margin: 0;
             background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -2px;
@@ -459,6 +460,13 @@
             updateFavicon(savedTheme);
         }
         updateUI();
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((reg) => console.log('Omega SW registered:', reg))
+                    .catch((err) => console.log('Omega SW registration failed:', err));
+            });
+        }
     </script>
 </body>
 

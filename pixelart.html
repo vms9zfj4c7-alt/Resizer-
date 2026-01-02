@@ -8,9 +8,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;600;800&display=swap"
     rel="stylesheet">
 
-  <link rel="icon" type="image/png" href="icon-dark.png">
+  <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
   <link rel="apple-touch-icon" href="icon-dark.png">
-  <link rel="manifest" href="manifest-dark.json">
+  <link rel="manifest" id="appManifest" href="manifest-dark.json">
+
+  <!-- GIF Export Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js"></script>
 
 
   <style>
@@ -241,50 +245,54 @@
       background: var(--btn-active);
     }
 
-    .dpad-u {
-      width: 32px;
-      height: 36px;
-      top: 0;
-      left: 34px;
-      border-radius: 4px 4px 0 0;
+    /* REFINED BUTTONS */
+    .btn-action {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .dpad-d {
-      width: 32px;
-      height: 36px;
-      bottom: 0;
-      left: 34px;
-      border-radius: 0 0 4px 4px;
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      filter: brightness(1.1);
     }
 
-    .dpad-l {
-      width: 36px;
-      height: 32px;
-      left: 0;
-      top: 34px;
-      border-radius: 4px 0 0 4px;
+    .btn-action:active {
+      transform: translateY(0);
     }
 
-    .dpad-r {
-      width: 36px;
-      height: 32px;
-      right: 0;
-      top: 34px;
-      border-radius: 0 4px 4px 0;
+    .btn-secondary {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-main);
     }
 
-    .dpad-c {
-      width: 32px;
-      height: 32px;
-      left: 34px;
-      top: 34px;
-      position: absolute;
-      background: var(--btn-on);
-      z-index: 2;
-      pointer-events: none;
+    .large-btn {
+      width: 100%;
     }
 
-    /* Center filler */
+    #resultsPanel {
+      display: none;
+      /* Progressive Disclosure */
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease;
+    }
 
     /* AB BUTTONS */
     .action-group {
@@ -476,6 +484,40 @@
       </div>
     </div>
 
+    <div id="resultsPanel">
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-action large-btn" onclick="downloadImage()">
+          <span class="label" style="display:none">B</span> 💾 SAVE
+        </button>
+
+        <button class="btn-action large-btn" onclick="exportGIF()" style="background:#e11d48;">
+          <span class="label" style="display:none">GIF</span> 🎬 GIF
+        </button>
+      </div>
+
+      <div
+        style="display:flex; flex-direction:column; gap:10px; background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid var(--border);">
+        <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">PALETTE</label>
+        <select id="paletteSelect" onchange="changePalette()"
+          style="width:100%; padding:10px; border-radius:8px; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border); outline:none;">
+          <option value="normal">🎨 Couleurs Normales</option>
+          <option value="gameboy" selected>🟢 Game Boy</option>
+          <option value="bw">⚫️ Noir & Blanc</option>
+          <option value="sepia">🟤 Sépia</option>
+          <option value="cyberpunk">🟣 Cyberpunk</option>
+          <option value="vaporwave">🌸 Vaporwave</option>
+        </select>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+          <label
+            style="color:var(--text-muted); font-size:0.8rem; font-weight:bold; display:flex; align-items:center; gap:5px;">
+            ✏️ MODE ÉDITEUR
+          </label>
+          <input type="checkbox" id="editModeToggle" onchange="toggleEditMode()" style="transform:scale(1.2);">
+        </div>
+      </div>
+    </div>
+
     <input type="file" id="upload" accept="image/*">
   </div>
 
@@ -589,10 +631,71 @@
     detectDevice();
 
     const PIXEL_SIZE = 12; const SCAN_SPEED = 7;
-    const c = document.getElementById("c"); const ctx = c.getContext("2d");
+    // --- PALETTES ---
+    const PALETTES = {
+      normal: 'normal', // Added for normal color mode
+      gameboy: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
+      bw: ['#000000', '#555555', '#aaaaaa', '#ffffff'],
+      sepia: ['#4b301b', '#8a6240', '#d2b48c', '#f5deb3'],
+      cyberpunk: ['#0b0014', '#551a8b', '#00ced1', '#ff1493'],
+      vaporwave: ['#1a103c', '#5a2e8c', '#b866d9', '#ff99e6']
+    };
+
+    let currentPalette = PALETTES.gameboy;
+    let isEditMode = false;
+
+    // --- EXISTING VARS ---
+    const canvas = document.getElementById("c"); // Renamed from 'c' to 'canvas'
+    const ctx = canvas.getContext("2d");
+    const upload = document.getElementById('upload');
     const btnScan = document.getElementById("cta"); const btnDownload = document.getElementById("download");
     const led = document.getElementById("powerLed");
     const placeholder = document.getElementById("placeholder");
+    let pixels = []; // Store pixel data for manual editing/redraw
+
+    function changePalette() {
+      const select = document.getElementById('paletteSelect');
+      currentPalette = PALETTES[select.value] || PALETTES.gameboy;
+      if (pixels.length > 0) {
+        reRenderPixels();
+      }
+    }
+
+    function toggleEditMode() {
+      isEditMode = document.getElementById('editModeToggle').checked;
+      if (isEditMode) {
+        canvas.style.cursor = 'crosshair';
+        alert("Mode Éditeur activé: Cliquez sur les pixels pour cycler les couleurs !");
+      } else {
+        canvas.style.cursor = 'default';
+      }
+    }
+
+    // Canvas Click for Edit Mode
+    canvas.addEventListener('mousedown', (e) => {
+      if (!isEditMode || pixels.length === 0) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      // Find which pixel column this belongs to?
+      // logic: width / numCols.
+      // We need to know 'pixelSize'. Since we draw rects of size 'pixelSize'.
+      // In render function we define pixelSize. We need to store it globally or recalculate.
+      // Simplified: We can just use getComputedStyle or active image dimensions?
+
+      // Actually, let's look at `processImage` logic below.
+      // It draws `ctx.fillStyle` then `ctx.fillRect(x, y, pixelSize, pixelSize)`.
+      // We need to store `pixelSize`.
+    });
+
+    // ...
+    let g_pixelSize = 1;
+    let g_width = 0, g_height = 0;
 
     // --- HELPER D-PAD ---
     let offsetX = 0;
@@ -613,9 +716,9 @@
 
     function redraw() {
       if (!img.src) return;
-      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       // Draw original image with offset
-      ctx.drawImage(img, offsetX, offsetY, c.width, c.height); // Note: we are stretching image to c.width/height in original code. 
+      ctx.drawImage(img, offsetX, offsetY, canvas.width, canvas.height); // Note: we are stretching image to c.width/height in original code.
       // Wait, original code was: ctx.drawImage(img, 0, 0, c.width, c.height);
       // It calculated c.width/c.height based on ratio.
       // So we should draw at offsetX, offsetY with same w, h.
@@ -685,38 +788,38 @@
     img.onload = () => {
       // Fit to container logic needs update since we don't have hardcoded numbers
       // Use clientWidth of container
-      const parent = c.parentElement;
+      const parent = canvas.parentElement;
       const maxWidth = parent.clientWidth;
       const maxHeight = parent.clientHeight;
 
       const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
-      c.width = img.width * ratio; c.height = img.height * ratio;
+      canvas.width = img.width * ratio; canvas.height = img.height * ratio;
 
       // Reset offsets on new image
       offsetX = 0; offsetY = 0;
 
       // Draw initial
-      ctx.drawImage(img, 0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       // Prepare pixelated version (full size matching canvas)
       pixelatedCanvas = document.createElement('canvas');
-      pixelatedCanvas.width = c.width; pixelatedCanvas.height = c.height;
+      pixelatedCanvas.width = canvas.width; pixelatedCanvas.height = canvas.height;
 
       const pCtx = pixelatedCanvas.getContext('2d');
       const temp = document.createElement('canvas');
       // PIXEL_SIZE can be dynamic?
       const pSize = 12;
-      temp.width = Math.max(1, c.width / pSize); temp.height = Math.max(1, c.height / pSize);
+      temp.width = Math.max(1, canvas.width / pSize); temp.height = Math.max(1, canvas.height / pSize);
 
       const tCtx = temp.getContext('2d');
       tCtx.imageSmoothingEnabled = false; pCtx.imageSmoothingEnabled = false;
 
       tCtx.drawImage(img, 0, 0, temp.width, temp.height);
-      // We draw back to pixelatedCanvas filling it. 
+      // We draw back to pixelatedCanvas filling it.
       // NOTE: If we pan, we want to see the pixelated version of the PANNED image.
       // So pixelatedCanvas stores the PIXELATED version of the WHOLE image?
       // Actually here we are scaling the whole image to fit canvas and then pixelating THAT.
-      // So if we pan, we are just moving this result? 
+      // So if we pan, we are just moving this result?
       // NO. If we pan, we might want to move the underlying image?
       // BUT current logic scales image to FIT canvas exactly. So panning would move it OFF screen.
       // The user wants to "adjust" frame? likely means zooming/panning if it didn't fit perfectly?
@@ -725,45 +828,186 @@
       // Panning might be useful if they want to create an interesting crop or if we allow zooming later.
       // For now, let's just allow moving it (it will create blank space).
 
-      pCtx.drawImage(temp, 0, 0, temp.width, temp.height, 0, 0, c.width, c.height);
+      pCtx.drawImage(temp, 0, 0, temp.width, temp.height, 0, 0, canvas.width, canvas.height);
 
       btnScan.disabled = false;
       btnScan.classList.add('primary'); // Ensure style
 
       btnDownload.disabled = true;
       y = 0;
+
+      // --- PIXELATION LOGIC (UPDATED WITH PALETTE) ---
+      const w = img.width;
+      const h = img.height;
+
+      // Target width from input? Default fixed or calculated?
+      const targetWidth = 64; // Standard GameBoyish width
+      const scale = targetWidth / w;
+      const targetHeight = Math.floor(h * scale);
+
+      canvas.width = targetWidth * 4; // Scale up for visibility? Or keep low res?
+      canvas.height = targetHeight * 4;
+      // Let's use 4x visual scale so pixels look big
+
+      const pixelSize = 4;
+      g_pixelSize = pixelSize;
+      g_width = canvas.width; g_height = canvas.height;
+
+      // Draw temp context to read pixels
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = targetWidth;
+      tempCanvas.height = targetHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+      const imgData = tempCtx.getImageData(0, 0, targetWidth, targetHeight).data;
+
+      pixels = []; // Reset storage
+
+      // Show controls when scan starts/finishes
+      document.getElementById('resultsPanel').style.display = 'flex';
+
+      // Clear Canvas
+      const useNormalColors = (currentPalette === 'normal');
+      if (!useNormalColors) {
+        ctx.fillStyle = currentPalette[0]; // BG
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Iterate and Quantize
+      let pixelIndex = 0;
+      for (let y = 0; y < targetHeight; y++) {
+        for (let x = 0; x < targetWidth; x++) {
+          const i = (y * targetWidth + x) * 4;
+
+          let fillStyle;
+          let colorIndex = 0;
+          let r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+
+          if (useNormalColors) {
+            fillStyle = `rgb(${r},${g},${b})`;
+            colorIndex = -1; // Special flag
+          } else {
+            const avg = (r + g + b) / 3;
+            // Map brightness to 4 colors
+            if (avg > 64) colorIndex = 1;
+            if (avg > 128) colorIndex = 2;
+            if (avg > 192) colorIndex = 3; // Lightest
+            fillStyle = currentPalette[colorIndex];
+          }
+
+          // Store for redraws
+          pixels.push({
+            x: x * pixelSize,
+            y: y * pixelSize,
+            colorIndex: colorIndex,
+            r: r, g: g, b: b // Store True Color too
+          });
+
+          // Draw
+          ctx.fillStyle = fillStyle;
+          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        }
+      }
+
+      // Set status
+      // document.getElementById('statusText').innerText = "SCAN COMPLETED"; // statusText not defined in this snippet
     };
 
-    function scan() {
-      y += SCAN_SPEED;
-      ctx.clearRect(0, 0, c.width, c.height);
-      // Draw normal image at offset
-      ctx.drawImage(img, offsetX, offsetY, c.width, c.height);
+    function reRenderPixels() {
+      if (pixels.length === 0) return;
+      ctx.fillStyle = currentPalette[0];
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, c.width, y);
-      ctx.clip();
+      pixels.forEach(p => {
+        ctx.fillStyle = currentPalette[p.colorIndex];
+        ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
+      });
+    }
 
-      // Draw pixelated image at offset
-      if (pixelatedCanvas) {
-        ctx.drawImage(pixelatedCanvas, offsetX, offsetY);
+    // CLICK HANDLER IMPL
+    canvas.onclick = (e) => {
+      if (!isEditMode || pixels.length === 0) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+      // Find pixel
+      // Grid coords
+      const gx = Math.floor(x / g_pixelSize) * g_pixelSize;
+      const gy = Math.floor(y / g_pixelSize) * g_pixelSize;
+
+      const p = pixels.find(px => Math.abs(px.x - gx) < 1 && Math.abs(px.y - gy) < 1);
+      if (p) {
+        // Cycle color
+        p.colorIndex = (p.colorIndex + 1) % 4;
+        // Redraw single pixel
+        ctx.fillStyle = currentPalette[p.colorIndex];
+        ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
       }
-      ctx.restore();
-      if (y < c.height) {
-        ctx.strokeStyle = "#10b981"; ctx.lineWidth = 2; // Green laser
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke();
-        anim = requestAnimationFrame(scan);
-      } else {
-        btnDownload.disabled = false;
-        // led.classList.remove('active'); 
+    };
+
+    // --- EXPORT GIF ---
+    function exportGIF() {
+      if (pixels.length === 0) { alert("Scannez une image d'abord !"); return; }
+
+      const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        width: canvas.width,
+        height: canvas.height,
+        workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+      });
+
+      // Add Frames (Simulate Scan Animation?)
+      // Let's add the final image as frame 1
+      gif.addFrame(canvas, { delay: 2000 });
+
+      // Maybe add a blink effect or 'Scanning' text?
+      // Let's just export the static for now as per "Animation scan" request implies capturing the process
+      // But capturing the process post-facto is hard unless we replay it.
+      // Let's Replay Render for GIF!
+
+      // Clear
+      const buffer = document.createElement('canvas');
+      buffer.width = canvas.width; buffer.height = canvas.height;
+      const bctx = buffer.getContext('2d');
+
+      bctx.fillStyle = currentPalette[0];
+      bctx.fillRect(0, 0, buffer.width, buffer.height);
+
+      // Frame 1: Blank
+      gif.addFrame(bctx, { delay: 200, copy: true });
+
+      // Frame 2-5: Progressive rendering
+      const batchSize = Math.floor(pixels.length / 5);
+      for (let i = 1; i <= 5; i++) {
+        const end = Math.min(i * batchSize, pixels.length);
+        for (let j = (i - 1) * batchSize; j < end; j++) {
+          const p = pixels[j];
+          bctx.fillStyle = currentPalette[p.colorIndex];
+          bctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
+        }
+        gif.addFrame(bctx, { delay: 150, copy: true });
       }
+
+      // Final Frame
+      gif.addFrame(bctx, { delay: 2000, copy: true });
+
+      gif.on('finished', function (blob) {
+        saveAs(blob, "pixel_art_scan.gif");
+      });
+
+      alert("Génération du GIF en cours...");
+      gif.render();
     }
 
     btnScan.onclick = () => { y = 0; cancelAnimationFrame(anim); scan(); };
     btnDownload.onclick = () => {
       const a = document.createElement('a'); a.download = 'omega-pixel.png';
-      a.href = c.toDataURL(); a.click();
+      a.href = canvas.toDataURL(); a.click();
     };
   </script>
 </body>
