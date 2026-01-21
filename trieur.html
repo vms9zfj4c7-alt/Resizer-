@@ -726,6 +726,20 @@
             }
         }
 
+        // Global store for object URLs to revoke them later
+        const activeObjectUrls = new Set();
+
+        function createSafeUrl(file) {
+            const url = URL.createObjectURL(file);
+            activeObjectUrls.add(url);
+            return url;
+        }
+
+        function cleanupUrls() {
+            activeObjectUrls.forEach(url => URL.revokeObjectURL(url));
+            activeObjectUrls.clear();
+        }
+
         async function processImages() {
             const fileInput = document.getElementById('fileInput');
             const files = draggedFiles || fileInput.files;
@@ -736,14 +750,41 @@
 
             if (!files || files.length === 0) return alert(t('alertNoFiles'));
 
-            if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
+            // Cleanup previous run
+            cleanupUrls();
             resultsArea.innerHTML = '';
 
+            if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
+
             let photoData = [];
-            for (let file of files) {
-                const date = await getExifDate(file);
-                photoData.push({ file, date, timestamp: date.getTime() });
+            const totalFiles = files.length;
+            const BATCH_SIZE = 20; // Process in small chunks to keep UI responsive
+
+            // Process files in batches
+            for (let i = 0; i < totalFiles; i += BATCH_SIZE) {
+                const batch = Array.from(files).slice(i, i + BATCH_SIZE);
+
+                // Update Progress
+                const progress = Math.round((i / totalFiles) * 100);
+                if (btnTextSpan) btnTextSpan.innerText = `${t('btnProcessing')} ${progress}%`;
+
+                // Process batch in parallel
+                await Promise.all(batch.map(async (file) => {
+                    try {
+                        const date = await getExifDate(file);
+                        photoData.push({ file, date, timestamp: date.getTime() });
+                    } catch (e) {
+                        console.error("Error processing file", file.name, e);
+                    }
+                }));
+
+                // Yield to main thread to prevent crash/freeze
+                await new Promise(r => setTimeout(r, 10));
             }
+
+            // Final Sort
+            if (btnTextSpan) btnTextSpan.innerText = "Tri en cours...";
+            await new Promise(r => setTimeout(r, 10)); // Yield before sort
 
             photoData.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -786,8 +827,8 @@
                 const start = photos[0];
                 const end = photos[photos.length - 1];
 
-                const startUrl = URL.createObjectURL(start.file);
-                const endUrl = URL.createObjectURL(end.file);
+                const startUrl = createSafeUrl(start.file); // Safe
+                const endUrl = createSafeUrl(end.file);     // Safe
                 const dateNice = start.date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
                 const timeNice = start.date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
@@ -848,19 +889,54 @@
 
         window.toggleDetails = function (index) {
             const gallery = document.getElementById(`gallery-${index}`);
-            if (gallery.style.display === "grid") {
+            const isHidden = gallery.style.display === "none" || gallery.style.display === "";
+
+            if (!isHidden) {
                 gallery.style.display = "none";
-            } else {
-                gallery.style.display = "grid";
-                if (gallery.innerHTML === "") {
-                    globalGroupsData[index].photos.forEach(p => {
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(p.file);
-                        img.loading = "lazy";
-                        gallery.appendChild(img);
-                    });
+                gallery.innerHTML = ""; // Clear DOM to free memory
+                return;
+            }
+
+            gallery.style.display = "grid";
+
+            // Render logic with pagination
+            const photos = globalGroupsData[index].photos;
+            const CHUNK_SIZE = 50;
+            let currentOffset = 0;
+
+            function appendChunk() {
+                const chunk = photos.slice(currentOffset, currentOffset + CHUNK_SIZE);
+                if (chunk.length === 0) return;
+
+                const fragment = document.createDocumentFragment();
+                chunk.forEach(p => {
+                    const img = document.createElement('img');
+                    img.src = createSafeUrl(p.file); // Use safe tracked creator
+                    img.loading = "lazy";
+                    fragment.appendChild(img);
+                });
+                gallery.appendChild(fragment);
+                currentOffset += CHUNK_SIZE;
+
+                // Remove "Load More" button if it exists
+                const existingBtn = gallery.querySelector('.load-more-btn');
+                if (existingBtn) existingBtn.remove();
+
+                // Add "Load More" if needed
+                if (currentOffset < photos.length) {
+                    const remaining = photos.length - currentOffset;
+                    const btn = document.createElement('button');
+                    btn.className = "toggle-btn load-more-btn";
+                    btn.innerText = `Afficher plus (${remaining})`;
+                    btn.style.gridColumn = "1 / -1"; // Full width
+                    btn.style.width = "100%";
+                    btn.style.marginTop = "10px";
+                    btn.onclick = appendChunk;
+                    gallery.appendChild(btn);
                 }
             }
+
+            appendChunk();
         }
 
         function getExifDate(file) {
