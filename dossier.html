@@ -867,71 +867,88 @@
         // --- EXPORT ZIP ---
         window.downloadZip = async () => {
             if (!processedFiles.length) return;
+
+            // ANALYSE DU VOLUME
+            const totalBytes = processedFiles.reduce((acc, file) => acc + file.size, 0);
+            const sizeInGB = totalBytes / (1024 * 1024 * 1024);
+
+            if (sizeInGB > 1.8) {
+                const proceed = confirm(`⚠️ ATTENTION ⚠️\n\nVous essayez de créer un ZIP de ${(sizeInGB).toFixed(2)} Go en UN SEUL fichier.\nCela risque de faire planter le navigateur.\n\nVoulez-vous quand même essayer ?`);
+                if (!proceed) return;
+            }
+
             const zip = new JSZip();
             const mode = document.getElementById('renameMode').value;
             const prefix = document.getElementById('filePrefix').value.trim() || "Fichier";
             const zipName = document.getElementById('zipName').value.trim() || "Fusion_Omega";
             const btn = document.querySelector('.zip-btn');
-            const originalText = btn.innerHTML;
+            const originalText = "⬇️ ZIP";
 
             btn.innerHTML = "⏳ 0%";
 
-            // Add files to ZIP
-            const usedNames = new Set();
-            const total = processedFiles.length;
+            try {
+                // Add files to ZIP
+                const usedNames = new Set();
+                const total = processedFiles.length;
 
-            // Chunking for ZIP addition to keep UI responsive
-            const CHUNK_SIZE = 200;
-            for (let i = 0; i < total; i += CHUNK_SIZE) {
-                const chunk = processedFiles.slice(i, i + CHUNK_SIZE);
+                // Chunking for ZIP addition to keep UI responsive
+                const CHUNK_SIZE = 200;
+                for (let i = 0; i < total; i += CHUNK_SIZE) {
+                    const chunk = processedFiles.slice(i, i + CHUNK_SIZE);
 
-                chunk.forEach((file, cIdx) => {
-                    // Global index
-                    const idx = i + cIdx;
-
-                    let finalName = file.name;
-                    if (mode === 'sequence') {
-                        const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
-                        finalName = `${prefix}_${idx + 1}.${ext}`;
-                    } else {
-                        // Handle duplicate names in ZIP
-                        if (usedNames.has(finalName)) {
-                            let base = finalName.substring(0, finalName.lastIndexOf("."));
-                            let ext = finalName.substring(finalName.lastIndexOf("."));
-                            if (ext === "" && base === "") { base = finalName; ext = ""; } // no extension case
-
-                            let c = 1;
-                            let newName = finalName;
-                            while (usedNames.has(newName)) {
-                                newName = `${base}_${c}${ext}`;
-                                c++;
+                    chunk.forEach((file, cIdx) => {
+                        const idx = i + cIdx;
+                        let finalName = file.name;
+                        if (mode === 'sequence') {
+                            const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
+                            finalName = `${prefix}_${String(idx + 1).padStart(4, '0')}.${ext}`;
+                        } else {
+                            if (usedNames.has(finalName)) {
+                                let base = finalName.substring(0, finalName.lastIndexOf("."));
+                                let ext = finalName.substring(finalName.lastIndexOf("."));
+                                if (ext === "" && base === "") { base = finalName; ext = ""; }
+                                let c = 1;
+                                let newName = finalName;
+                                while (usedNames.has(newName)) { newName = `${base}_${c}${ext}`; c++; }
+                                finalName = newName;
                             }
-                            finalName = newName;
+                            usedNames.add(finalName);
                         }
-                        usedNames.add(finalName);
+                        zip.file(finalName, file);
+                    });
+
+                    // Progress (0-50%)
+                    const progress = Math.round(((i + chunk.length) / total) * 50);
+                    btn.innerHTML = `⏳ ${progress}%`;
+                    await new Promise(r => setTimeout(r, 0));
+                }
+
+                btn.innerText = "⏳ Construction...";
+                await new Promise(r => setTimeout(r, 50));
+
+                // Generate Async
+                const content = await zip.generateAsync({
+                    type: "blob",
+                    compression: "STORE",
+                    onUpdate: function (metadata) {
+                        const progress = 50 + Math.round(metadata.percent * 0.5);
+                        btn.innerHTML = `⏳ ${progress}%`;
                     }
-                    zip.file(finalName, file);
                 });
 
-                // Update UI & Yield
-                const progress = Math.round(((i + chunk.length) / total) * 30); // 30% for adding
-                btn.innerHTML = `⏳ ${progress}%`;
-                await new Promise(r => setTimeout(r, 0));
-            }
+                btn.innerHTML = "⏳ 100%";
+                await new Promise(r => setTimeout(r, 200));
 
-            // Generate Async
-            zip.generateAsync({
-                type: "blob",
-                compression: "STORE", // Faster for large sets
-                onUpdate: function (metadata) {
-                    const progress = 30 + Math.round(metadata.percent * 0.7); // Remaining 70%
-                    btn.innerHTML = `⏳ ${progress}%`;
-                }
-            }).then(content => {
                 saveAs(content, zipName + ".zip");
                 btn.innerHTML = "✅";
-                setTimeout(() => btn.innerHTML = originalText, 2000);
-            });
+                setTimeout(() => btn.innerHTML = originalText, 3000);
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ ERREUR MEMOIRE \nLe navigateur n'a pas réussi à créer ce gros fichier ZIP en une seule fois.\nEssayez de rafraîchir la page et de sélectionner moins de dossiers.");
+                btn.innerHTML = "❌ Erreur";
+                setTimeout(() => btn.innerHTML = originalText, 3000);
+            }
         };
 
         function formatBytes(bytes) {
