@@ -13,7 +13,7 @@
   <link rel="manifest" id="appManifest" href="manifest-dark.json">
 
   <!-- GIF Export Library (Local) -->
-  <script src="assets/vendor/gif.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
   <!-- Worker loaded dynamically -->
 
 
@@ -866,7 +866,7 @@
       btnScan.disabled = false;
       btnScan.classList.add('primary');
       btnDownload.disabled = true;
-      
+
       // Auto-scan on load to show default 64px immediately
       scan();
     };
@@ -1024,15 +1024,27 @@
     };
 
     // --- EXPORT GIF ---
-    function exportGIF() {
+    async function exportGIF() {
       if (pixels.length === 0) { alert("Scannez une image d'abord !"); return; }
+
+      // Load worker from CDN to Blob to avoid Cross-Origin Worker issues on GitHub Pages
+      let workerUrl = '';
+      try {
+        const resp = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
+        if (!resp.ok) throw new Error("Network response was not ok");
+        const blob = await resp.blob();
+        workerUrl = URL.createObjectURL(blob);
+      } catch (e) {
+        console.error("Failed to load generic worker, falling back to local if available", e);
+        workerUrl = 'assets/vendor/gif.worker.js';
+      }
 
       const gif = new GIF({
         workers: 2,
         quality: 10,
         width: canvas.width,
         height: canvas.height,
-        workerScript: 'assets/vendor/gif.worker.js'
+        workerScript: workerUrl
       });
 
       // Add Frames (Simulate Scan Animation?)
