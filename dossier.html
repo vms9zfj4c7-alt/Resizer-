@@ -10,6 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
+    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
+    <link rel="apple-touch-icon" href="icon-dark.png">
+    <link rel="manifest" id="appManifest" href="manifest-dark.json">
+
     <style>
         :root {
             /* THÈME SOMBRE (Défaut) */
@@ -429,13 +433,15 @@
             <div class="title-group">
                 <div style="display:flex; align-items:center; gap: 10px;">
                     <a href="index.html" class="header-btn" title="Retour accueil">🏠</a>
-
                     <h1>Fusionneur OMEGA</h1>
                     <span id="deviceBadge" class="device-badge">...</span>
                 </div>
                 <p>Gestionnaire de fichiers avancé</p>
             </div>
-            <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+            <div style="display:flex; gap:10px;">
+                <button class="header-btn" id="langBtn" onclick="toggleLanguage()">🇫🇷</button>
+                <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+            </div>
         </header>
 
         <div class="controls">
@@ -514,21 +520,159 @@
     </div>
 
     <script>
+        // --- TRADUCTIONS ---
+        let currentLang = localStorage.getItem('omegaLang') || 'fr';
+        const translations = {
+            fr: {
+                title: "Fusionneur OMEGA",
+                subtitle: "Gestionnaire de fichiers avancé",
+                sectionRename: "📂 Nommage",
+                modeKeep: "Garder noms originaux",
+                modeSeq: "Numérotation (01, 02...)",
+                prefixPlace: "Préfixe (ex: Vacances)",
+                sectionDedup: "🛡️ Doublons",
+                dedupNone: "Aucun nettoyage",
+                dedupStd: "⚡ Standard (Nom + Taille)",
+                dedupStrict: "🔒 Strict (+Date)",
+                dedupUltra: "🛡️ Paranoïaque (Tout)",
+                sectionOrg: "⚡ Organisation",
+                sortAdd: "Ordre d'ajout",
+                sortAZ: "Nom (A-Z)",
+                sortZA: "Nom (Z-A)",
+                sortSizeAsc: "Taille (Petit → Grand)",
+                sortSizeDesc: "Taille (Grand → Petit)",
+                sortDateOld: "Date (Ancien → Récent)",
+                sortDateNew: "Date (Récent → Ancien)",
+                filterInfo: "Filtrer:",
+                filterAll: "Tout",
+                filterImg: "Images",
+                filterVid: "Vidéos",
+                filterDoc: "Docs",
+                dropTitle: "Glissez vos dossiers ici",
+                filesReady: "Fichiers prêts",
+                clearAll: "Tout Effacer",
+                zipPlace: "Nom du ZIP...",
+                deviceAndroid: "ANDROID 🤖",
+                deviceIOS: "iOS 🍎",
+                deviceMac: "MAC 🖥️",
+                deviceWin: "WINDOWS 💻",
+                deviceUnknown: "INCONNU",
+                actionTouch: "Appuyez pour sélectionner",
+                actionDrag: "Glissez ou Collez"
+            },
+            en: {
+                title: "Fusion Omega",
+                subtitle: "Advanced File Manager",
+                sectionRename: "📂 Naming",
+                modeKeep: "Keep Original Names",
+                modeSeq: "Sequence (01, 02...)",
+                prefixPlace: "Prefix (e.g., Holiday)",
+                sectionDedup: "🛡️ Duplicates",
+                dedupNone: "No Cleaning",
+                dedupStd: "⚡ Standard (Name + Size)",
+                dedupStrict: "🔒 Strict (+Date)",
+                dedupUltra: "🛡️ Paranoid (All)",
+                sectionOrg: "⚡ Organization",
+                sortAdd: "Order Added",
+                sortAZ: "Name (A-Z)",
+                sortZA: "Name (Z-A)",
+                sortSizeAsc: "Size (Small → Large)",
+                sortSizeDesc: "Size (Large → Small)",
+                sortDateOld: "Date (Old → New)",
+                sortDateNew: "Date (New → Old)",
+                filterInfo: "Filter:",
+                filterAll: "All",
+                filterImg: "Images",
+                filterVid: "Videos",
+                filterDoc: "Docs",
+                dropTitle: "Drop folders here",
+                filesReady: "Files Ready",
+                clearAll: "Clear All",
+                zipPlace: "ZIP Name...",
+                deviceAndroid: "ANDROID 🤖",
+                deviceIOS: "iOS 🍎",
+                deviceMac: "MAC 🖥️",
+                deviceWin: "WINDOWS 💻",
+                deviceUnknown: "UNKNOWN",
+                actionTouch: "Tap to select",
+                actionDrag: "Drop or Paste"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            localStorage.setItem('omegaLang', currentLang);
+            updateUI();
+        }
+
+        function updateUI() {
+            const t = translations[currentLang];
+            document.getElementById('langBtn').innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
+
+            // Header
+            document.querySelector('.title-group h1').innerText = t.title;
+            document.querySelector('.title-group p').innerText = t.subtitle;
+
+            // Sections
+            const titles = document.querySelectorAll('.section-title');
+            if (titles[0]) titles[0].innerText = t.sectionRename;
+            if (titles[1]) titles[1].innerText = t.sectionDedup;
+            if (titles[2]) titles[2].innerText = t.sectionOrg;
+
+            // Selects options manually targeted
+            const setOpt = (id, idx, text) => { document.getElementById(id).options[idx].text = text; };
+
+            setOpt('renameMode', 0, t.modeKeep);
+            setOpt('renameMode', 1, t.modeSeq);
+            document.getElementById('filePrefix').placeholder = t.prefixPlace;
+
+            setOpt('dedupLevel', 0, t.dedupNone);
+            setOpt('dedupLevel', 1, t.dedupStd);
+            setOpt('dedupLevel', 2, t.dedupStrict);
+            setOpt('dedupLevel', 3, t.dedupUltra);
+
+            setOpt('sortMode', 0, t.sortAdd);
+            setOpt('sortMode', 1, t.sortAZ);
+            setOpt('sortMode', 2, t.sortZA);
+            setOpt('sortMode', 3, t.sortSizeAsc);
+            setOpt('sortMode', 4, t.sortSizeDesc);
+            setOpt('sortMode', 5, t.sortDateOld);
+            setOpt('sortMode', 6, t.sortDateNew);
+
+            document.querySelector('span[style*="font-size:0.8rem"]').innerText = t.filterInfo;
+            setOpt('filterType', 0, t.filterAll);
+            setOpt('filterType', 1, t.filterImg);
+            setOpt('filterType', 2, t.filterVid);
+            setOpt('filterType', 3, t.filterDoc);
+
+            // Misc
+            document.querySelector('.drop-zone div[style*="font-size:1.2rem"]').innerText = t.dropTitle;
+            const listHeader = document.querySelector('.list-header span');
+            if (listHeader) listHeader.childNodes[0].textContent = t.filesReady + " ";
+            document.querySelector('.list-header button').innerText = t.clearAll;
+            document.getElementById('zipName').placeholder = t.zipPlace;
+
+            detectDevice(); // Refresh dynamic text
+        }
+
         // --- THEME LOGIC ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
             const isDark = body.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark'; // Correct toggle
 
-            if (isDark) {
-                body.setAttribute('data-theme', 'light');
-                btn.innerText = '☀️';
-                localStorage.setItem('fusionOmegaTheme', 'light');
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                btn.innerText = '🌙';
-                localStorage.setItem('fusionOmegaTheme', 'dark');
-            }
+            body.setAttribute('data-theme', newTheme);
+            btn.innerText = isDark ? '☀️' : '🌙'; // If was dark (now light), show sun
+            localStorage.setItem('fusionOmegaTheme', newTheme);
+            updateFavicon(newTheme);
+        }
+
+        function updateFavicon(theme) {
+            const icon = document.getElementById('appIcon');
+            const manifest = document.getElementById('appManifest');
+            if (icon) icon.href = `icon-${theme}.png`;
+            if (manifest) manifest.href = `manifest-${theme}.json`;
         }
 
         // Init Theme
@@ -536,7 +680,11 @@
         if (savedTheme) {
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+            updateFavicon(savedTheme);
         }
+
+        // Init Lang
+        updateUI();
 
         // --- VARIABLES ---
         let rawFiles = [];
@@ -548,12 +696,13 @@
             const badge = document.getElementById('deviceBadge');
             const hint = document.getElementById('pasteHint');
 
-            let type = "Inconnu", color = "#94a3b8", txt = "Glissez ou cliquez";
+            const t = translations[currentLang];
+            let type = t.deviceUnknown, color = "#94a3b8", txt = t.actionDrag;
 
-            if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; txt = "Appuyez pour sélectionner"; }
-            else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; txt = "Appuyez pour sélectionner"; }
-            else if (/Macintosh/i.test(ua)) { type = "Mac 🖥️"; color = "#f472b6"; txt = "Glissez ou Cmd+V"; }
-            else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; txt = "Glissez ou Ctrl+V"; }
+            if (/Android/i.test(ua)) { type = t.deviceAndroid; color = "#10b981"; txt = t.actionTouch; }
+            else if (/iPhone|iPad|iPod/i.test(ua)) { type = t.deviceIOS; color = "#ef4444"; txt = t.actionTouch; }
+            else if (/Macintosh/i.test(ua)) { type = t.deviceMac; color = "#f472b6"; txt = t.actionDrag; }
+            else if (/Windows/i.test(ua)) { type = t.deviceWin; color = "#3b82f6"; txt = t.actionDrag; }
 
             if (hint) hint.innerHTML = txt;
             if (badge) {
@@ -572,6 +721,7 @@
         }
 
         // --- LOGIQUE FICHIERS ---
+        // --- LOGIQUE FICHIERS ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
 
@@ -579,6 +729,7 @@
         dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
         dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--border)'; handleFiles(e.dataTransfer.files); });
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
         document.addEventListener('paste', (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             const files = [];
@@ -586,25 +737,55 @@
             handleFiles(files);
         });
 
-        function handleFiles(files) {
+        async function handleFiles(files) {
             if (!files.length) return;
-            const newFiles = Array.from(files).filter(f => !f.name.startsWith('.') && f.name !== "Thumbs.db");
+
+            // Show loading if massive amount
+            const dropText = document.querySelector('.drop-zone div[style*="font-size:1.2rem"]');
+            const originalText = dropText.innerText;
+            if (files.length > 500) dropText.innerText = "⏳ Chargement...";
+
+            const newFiles = [];
+            // Batch process input files to avoid UI freeze on 10k+ files
+            const BATCH_SIZE = 500;
+            for (let i = 0; i < files.length; i += BATCH_SIZE) {
+                const chunk = Array.from(files).slice(i, i + BATCH_SIZE);
+                chunk.forEach(f => {
+                    if (!f.name.startsWith('.') && f.name !== "Thumbs.db") {
+                        newFiles.push(f);
+                    }
+                });
+                await new Promise(r => setTimeout(r, 0)); // Yield
+            }
+
             rawFiles = [...rawFiles, ...newFiles];
-            applyFilters();
+            applyFilters(); // already triggers render
+
+            if (files.length > 500) dropText.innerText = originalText;
         }
 
         // --- TRAITEMENT ---
-        function applyFilters() {
+        async function applyFilters() {
             const typeFilter = document.getElementById('filterType').value;
-            let list = rawFiles.filter(f => {
-                if (typeFilter === 'all') return true;
-                if (typeFilter === 'image') return f.type.startsWith('image/');
-                if (typeFilter === 'video') return f.type.startsWith('video/');
-                if (typeFilter === 'pdf') return f.type === 'application/pdf';
-                return true;
-            });
-
             const dedupLevel = document.getElementById('dedupLevel').value;
+            const sortMode = document.getElementById('sortMode').value;
+
+            // Use simple timeout to allow UI update before heavy lifting
+            await new Promise(r => setTimeout(r, 10));
+
+            let list = rawFiles;
+
+            // 1. FILTER
+            if (typeFilter !== 'all') {
+                list = list.filter(f => {
+                    if (typeFilter === 'image') return f.type.startsWith('image/');
+                    if (typeFilter === 'video') return f.type.startsWith('video/');
+                    if (typeFilter === 'pdf') return f.type === 'application/pdf';
+                    return true;
+                });
+            }
+
+            // 2. DEDUP
             if (dedupLevel !== 'none') {
                 const unique = [];
                 const seen = new Set();
@@ -617,16 +798,18 @@
                 list = unique;
             }
 
-            const sortMode = document.getElementById('sortMode').value;
-            list.sort((a, b) => {
-                if (sortMode === 'nameAZ') return a.name.localeCompare(b.name);
-                if (sortMode === 'nameZA') return b.name.localeCompare(a.name);
-                if (sortMode === 'sizeASC') return a.size - b.size;
-                if (sortMode === 'sizeDESC') return b.size - a.size;
-                if (sortMode === 'dateOLD') return a.lastModified - b.lastModified;
-                if (sortMode === 'dateNEW') return b.lastModified - a.lastModified;
-                return 0;
-            });
+            // 3. SORT
+            if (sortMode !== 'none') {
+                list.sort((a, b) => {
+                    if (sortMode === 'nameAZ') return a.name.localeCompare(b.name);
+                    if (sortMode === 'nameZA') return b.name.localeCompare(a.name);
+                    if (sortMode === 'sizeASC') return a.size - b.size;
+                    if (sortMode === 'sizeDESC') return b.size - a.size;
+                    if (sortMode === 'dateOLD') return a.lastModified - b.lastModified;
+                    if (sortMode === 'dateNEW') return b.lastModified - a.lastModified;
+                    return 0;
+                });
+            }
 
             processedFiles = list;
             renderList();
@@ -645,6 +828,8 @@
                 container.style.display = 'block';
                 actionBar.style.display = 'flex';
 
+                // Virtualize-ish: Only render first 100 items to keep DOM light
+                const fragment = document.createDocumentFragment();
                 processedFiles.slice(0, 100).forEach((file) => {
                     const div = document.createElement('div');
                     div.className = 'file-item';
@@ -659,8 +844,10 @@
                             ${formatBytes(file.size)}
                         </div>
                     `;
-                    listEl.appendChild(div);
+                    fragment.appendChild(div);
                 });
+                listEl.appendChild(fragment);
+
                 if (processedFiles.length > 100) {
                     listEl.innerHTML += `<div style="text-align:center; padding:15px; color:var(--text-muted); font-size:0.8rem;">+ ${processedFiles.length - 100} autres fichiers...</div>`;
                 }
@@ -672,45 +859,96 @@
 
         function clearAll() {
             rawFiles = [];
-            applyFilters();
+            processedFiles = [];
+            document.getElementById('fileInput').value = '';
+            renderList();
         }
 
         // --- EXPORT ZIP ---
-        window.downloadZip = () => {
+        window.downloadZip = async () => {
             if (!processedFiles.length) return;
+
+            // ANALYSE DU VOLUME
+            const totalBytes = processedFiles.reduce((acc, file) => acc + file.size, 0);
+            const sizeInGB = totalBytes / (1024 * 1024 * 1024);
+
+            if (sizeInGB > 1.8) {
+                const proceed = confirm(`⚠️ ATTENTION ⚠️\n\nVous essayez de créer un ZIP de ${(sizeInGB).toFixed(2)} Go en UN SEUL fichier.\nCela risque de faire planter le navigateur.\n\nVoulez-vous quand même essayer ?`);
+                if (!proceed) return;
+            }
+
             const zip = new JSZip();
             const mode = document.getElementById('renameMode').value;
             const prefix = document.getElementById('filePrefix').value.trim() || "Fichier";
             const zipName = document.getElementById('zipName').value.trim() || "Fusion_Omega";
             const btn = document.querySelector('.zip-btn');
+            const originalText = "⬇️ ZIP";
 
-            btn.innerHTML = "⏳ ...";
+            btn.innerHTML = "⏳ 0%";
 
-            const usedNames = new Set();
-            processedFiles.forEach((file, idx) => {
-                let finalName = file.name;
-                if (mode === 'sequence') {
-                    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
-                    finalName = `${prefix}_${idx + 1}.${ext}`;
-                } else {
-                    if (usedNames.has(finalName)) {
-                        let base = finalName.substring(0, finalName.lastIndexOf("."));
-                        let ext = finalName.substring(finalName.lastIndexOf("."));
-                        let c = 1;
-                        while (usedNames.has(finalName)) {
-                            finalName = `${base}_${c}${ext}`;
-                            c++;
+            try {
+                // Add files to ZIP
+                const usedNames = new Set();
+                const total = processedFiles.length;
+
+                // Chunking for ZIP addition to keep UI responsive
+                const CHUNK_SIZE = 200;
+                for (let i = 0; i < total; i += CHUNK_SIZE) {
+                    const chunk = processedFiles.slice(i, i + CHUNK_SIZE);
+
+                    chunk.forEach((file, cIdx) => {
+                        const idx = i + cIdx;
+                        let finalName = file.name;
+                        if (mode === 'sequence') {
+                            const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
+                            finalName = `${prefix}_${String(idx + 1).padStart(4, '0')}.${ext}`;
+                        } else {
+                            if (usedNames.has(finalName)) {
+                                let base = finalName.substring(0, finalName.lastIndexOf("."));
+                                let ext = finalName.substring(finalName.lastIndexOf("."));
+                                if (ext === "" && base === "") { base = finalName; ext = ""; }
+                                let c = 1;
+                                let newName = finalName;
+                                while (usedNames.has(newName)) { newName = `${base}_${c}${ext}`; c++; }
+                                finalName = newName;
+                            }
+                            usedNames.add(finalName);
                         }
-                    }
-                    usedNames.add(finalName);
-                }
-                zip.file(finalName, file);
-            });
+                        zip.file(finalName, file);
+                    });
 
-            zip.generateAsync({ type: "blob" }).then(content => {
+                    // Progress (0-50%)
+                    const progress = Math.round(((i + chunk.length) / total) * 50);
+                    btn.innerHTML = `⏳ ${progress}%`;
+                    await new Promise(r => setTimeout(r, 0));
+                }
+
+                btn.innerText = "⏳ Construction...";
+                await new Promise(r => setTimeout(r, 50));
+
+                // Generate Async
+                const content = await zip.generateAsync({
+                    type: "blob",
+                    compression: "STORE",
+                    onUpdate: function (metadata) {
+                        const progress = 50 + Math.round(metadata.percent * 0.5);
+                        btn.innerHTML = `⏳ ${progress}%`;
+                    }
+                });
+
+                btn.innerHTML = "⏳ 100%";
+                await new Promise(r => setTimeout(r, 200));
+
                 saveAs(content, zipName + ".zip");
-                btn.innerHTML = "⬇️ ZIP";
-            });
+                btn.innerHTML = "✅";
+                setTimeout(() => btn.innerHTML = originalText, 3000);
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ ERREUR MEMOIRE \nLe navigateur n'a pas réussi à créer ce gros fichier ZIP en une seule fois.\nEssayez de rafraîchir la page et de sélectionner moins de dossiers.");
+                btn.innerHTML = "❌ Erreur";
+                setTimeout(() => btn.innerHTML = originalText, 3000);
+            }
         };
 
         function formatBytes(bytes) {
