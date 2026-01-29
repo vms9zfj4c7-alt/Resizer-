@@ -12,10 +12,6 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
-    <link rel="apple-touch-icon" href="icon-dark.png">
-    <link rel="manifest" id="appManifest" href="manifest-dark.json">
-
     <style>
         /* --- STYLES GLOBAUX (Identiques au précédent) --- */
         :root {
@@ -536,7 +532,7 @@
 
     <script>
         // --- 1. LOCALISATION & TRADUCTION ---
-        let currentLang = localStorage.getItem('omegaLang') || 'fr';
+        let currentLang = localStorage.getItem('trieurLang') || 'fr';
 
         const translations = {
             fr: {
@@ -599,61 +595,21 @@
                 deviceWin: "Windows 💻",
                 deviceMac: "Mac 🖥️",
                 alertNoFiles: "Please select photos first!",
-                errorZip: "Error creating ZIP file",
-                undo: "Undo Last Move"
+                errorZip: "Error creating ZIP file"
             }
         };
-
-        // --- UNDO & KEYBOARD LOGIC ---
-        let historyStack = [];
-
-        function undoLastMove() {
-            if (historyStack.length === 0) return;
-            // Since we don't have manual move logic yet, this is a placeholder for future manual sorting.
-            // However, we can make it undo the *last sorting param change* if we wanted?
-            // For now, let's just show feedback.
-            const btn = document.getElementById('undoBtn');
-            if (btn) btn.innerText = "Unavailable";
-            setTimeout(() => { if (btn) btn.innerText = "↩️"; }, 1000);
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-                e.preventDefault();
-                undoLastMove();
-            }
-        });
-
-        function updateUndoUI() {
-            // Hook to add button if needed
-            const panel = document.getElementById('actionPanel');
-            if (panel && !document.getElementById('undoBtn')) {
-                const btn = document.createElement('button');
-                btn.id = 'undoBtn';
-                btn.className = 'download-btn';
-                btn.style.background = '#64748b';
-                btn.style.marginRight = '10px';
-                btn.innerHTML = '↩️';
-                btn.onclick = undoLastMove;
-                panel.insertBefore(btn, panel.firstChild);
-            }
-        }
-
-        // Hook into existing UI update
-        const originalProcess = processImages;
-        // logic continues...
 
         function t(key) { return translations[currentLang][key] || key; }
 
         function toggleLanguage() {
             currentLang = currentLang === 'fr' ? 'en' : 'fr';
-            localStorage.setItem('omegaLang', currentLang);
+            localStorage.setItem('trieurLang', currentLang);
             updateUI();
         }
 
         function updateUI() {
-            const btn = document.getElementById('langBtn');
-            if (btn) btn.innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
+            // Update lang button
+            document.getElementById('langBtn').innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
 
             // Update static texts
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -667,27 +623,24 @@
             detectDevice();
 
             // Re-render interface if results exist
-            if (typeof globalGroupsData !== 'undefined' && globalGroupsData.length > 0) renderInterface();
+            if (globalGroupsData.length > 0) renderInterface();
         }
 
-        // --- 2. THEME & DEVICE ---
+        // --- 2. THÈME & APPAREIL ---
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
             const isDark = body.getAttribute('data-theme') === 'dark';
-            const newTheme = isDark ? 'light' : 'dark';
 
-            body.setAttribute('data-theme', newTheme);
-            if (btn) btn.innerText = isDark ? '☀️' : '🌙';
-            localStorage.setItem('sorterOmegaTheme', newTheme);
-            updateFavicon(newTheme);
-        }
-
-        function updateFavicon(theme) {
-            const icon = document.getElementById('appIcon');
-            const manifest = document.getElementById('appManifest');
-            if (icon) icon.href = `icon-${theme}.png`;
-            if (manifest) manifest.href = `manifest-${theme}.json`;
+            if (isDark) {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = '☀️';
+                localStorage.setItem('trieurTheme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = '🌙';
+                localStorage.setItem('trieurTheme', 'dark');
+            }
         }
 
         function detectDevice() {
@@ -697,7 +650,7 @@
 
             let type = "Web";
             let color = "#94a3b8";
-            let pasteText = t('pasteCtrl'); // Default
+            let pasteText = t('pasteCtrl');
 
             if (/Android/i.test(ua)) {
                 type = t('deviceAndroid'); color = "#10b981"; pasteText = t('pasteTouch');
@@ -713,36 +666,42 @@
             if (hint) { hint.innerHTML = pasteText; }
         }
 
-        // --- 3. CORE LOGIC ---
+        // Init
+        const savedTheme = localStorage.getItem('trieurTheme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+        }
+        updateUI(); // Set Initial Language
+
+        // --- 3. LOGIQUE DU TRIEUR ---
         let globalGroupsData = [];
-        let draggedFiles = null;
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        document.getElementById('timeGap').addEventListener('input', (e) => {
+            document.getElementById('gapValue').textContent = e.target.value;
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.style.borderColor = 'var(--border)';
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
         function handleFiles(files) {
-            const dropZone = document.getElementById('dropZone');
             if (files.length > 0) {
                 dropZone.querySelector('p').innerText = `${files.length} ${t('dropCount')}`;
                 dropZone.querySelector('span').innerText = "📸";
-                draggedFiles = files;
+                window.draggedFiles = files;
             }
         }
 
-        // Global store for object URLs to revoke them later
-        const activeObjectUrls = new Set();
-
-        function createSafeUrl(file) {
-            const url = URL.createObjectURL(file);
-            activeObjectUrls.add(url);
-            return url;
-        }
-
-        function cleanupUrls() {
-            activeObjectUrls.forEach(url => URL.revokeObjectURL(url));
-            activeObjectUrls.clear();
-        }
-
         async function processImages() {
-            const fileInput = document.getElementById('fileInput');
-            const files = draggedFiles || fileInput.files;
+            const files = window.draggedFiles || fileInput.files;
             const resultsArea = document.getElementById('results-area');
             const gapHours = parseInt(document.getElementById('timeGap').value);
             const btn = document.getElementById('analyzeBtn');
@@ -750,41 +709,14 @@
 
             if (!files || files.length === 0) return alert(t('alertNoFiles'));
 
-            // Cleanup previous run
-            cleanupUrls();
+            if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
             resultsArea.innerHTML = '';
 
-            if (btnTextSpan) btnTextSpan.innerText = t('btnProcessing');
-
             let photoData = [];
-            const totalFiles = files.length;
-            const BATCH_SIZE = 20; // Process in small chunks to keep UI responsive
-
-            // Process files in batches
-            for (let i = 0; i < totalFiles; i += BATCH_SIZE) {
-                const batch = Array.from(files).slice(i, i + BATCH_SIZE);
-
-                // Update Progress
-                const progress = Math.round((i / totalFiles) * 100);
-                if (btnTextSpan) btnTextSpan.innerText = `${t('btnProcessing')} ${progress}%`;
-
-                // Process batch in parallel
-                await Promise.all(batch.map(async (file) => {
-                    try {
-                        const date = await getExifDate(file);
-                        photoData.push({ file, date, timestamp: date.getTime() });
-                    } catch (e) {
-                        console.error("Error processing file", file.name, e);
-                    }
-                }));
-
-                // Yield to main thread to prevent crash/freeze
-                await new Promise(r => setTimeout(r, 10));
+            for (let file of files) {
+                const date = await getExifDate(file);
+                photoData.push({ file, date, timestamp: date.getTime() });
             }
-
-            // Final Sort
-            if (btnTextSpan) btnTextSpan.innerText = "Tri en cours...";
-            await new Promise(r => setTimeout(r, 10)); // Yield before sort
 
             photoData.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -827,8 +759,8 @@
                 const start = photos[0];
                 const end = photos[photos.length - 1];
 
-                const startUrl = createSafeUrl(start.file); // Safe
-                const endUrl = createSafeUrl(end.file);     // Safe
+                const startUrl = URL.createObjectURL(start.file);
+                const endUrl = URL.createObjectURL(end.file);
                 const dateNice = start.date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
                 const timeNice = start.date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
@@ -837,40 +769,40 @@
                 card.style.animationDelay = `${index * 0.1}s`;
 
                 card.innerHTML = `
-                <div class="card-header-row">
-                    <div class="card-title" style="color:var(--primary)">${t('folderTitle')} #${index + 1}</div>
-                    <div class="meta-badges">
-                        <span class="badge">📅 ${dateNice}</span>
-                        <span class="badge">⌚ ${timeNice}</span>
-                        <span class="badge">📸 ${photos.length}</span>
+                    <div class="card-header-row">
+                        <div class="card-title" style="color:var(--primary)">${t('folderTitle')} #${index + 1}</div>
+                        <div class="meta-badges">
+                            <span class="badge">📅 ${dateNice}</span>
+                            <span class="badge">⌚ ${timeNice}</span>
+                            <span class="badge">📸 ${photos.length}</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="input-group">
-                    <label>${t('labelName')}</label>
-                    <input type="text" value="${groupData.currentName}" data-id="${index}" onchange="updateFolderName(this)">
-                </div>
+                    <div class="input-group">
+                        <label>${t('labelName')}</label>
+                        <input type="text" value="${groupData.currentName}" data-id="${index}" onchange="updateFolderName(this)">
+                    </div>
 
-                <div class="timeline-container">
-                    <div class="timeline-item">
-                        <img src="${startUrl}" class="photo-thumb">
-                        <span class="timeline-label">${t('labelStart')}</span>
+                    <div class="timeline-container">
+                        <div class="timeline-item">
+                            <img src="${startUrl}" class="photo-thumb">
+                            <span class="timeline-label">${t('labelStart')}</span>
+                        </div>
+                         <div style="flex:1; border-bottom: 2px dashed var(--border); margin: 0 10px; position:relative; top:-10px;"></div>
+                        <div class="timeline-item">
+                            <button class="toggle-btn" onclick="toggleDetails(${index})">
+                                ${t('btnView')}
+                            </button>
+                        </div>
+                        <div style="flex:1; border-bottom: 2px dashed var(--border); margin: 0 10px; position:relative; top:-10px;"></div>
+                        <div class="timeline-item">
+                            <img src="${endUrl}" class="photo-thumb">
+                            <span class="timeline-label">${t('labelEnd')}</span>
+                        </div>
                     </div>
-                     <div style="flex:1; border-bottom: 2px dashed var(--border); margin: 0 10px; position:relative; top:-10px;"></div>
-                    <div class="timeline-item">
-                        <button class="toggle-btn" onclick="toggleDetails(${index})">
-                            ${t('btnView')}
-                        </button>
-                    </div>
-                    <div style="flex:1; border-bottom: 2px dashed var(--border); margin: 0 10px; position:relative; top:-10px;"></div>
-                    <div class="timeline-item">
-                        <img src="${endUrl}" class="photo-thumb">
-                        <span class="timeline-label">${t('labelEnd')}</span>
-                    </div>
-                </div>
 
-                <div class="hidden-gallery" id="gallery-${index}"></div>
-            `;
+                    <div class="hidden-gallery" id="gallery-${index}"></div>
+                `;
                 container.appendChild(card);
             });
 
@@ -880,63 +812,28 @@
             countLabel.innerText = `${globalGroupsData.length} ${t('countFolders')}`;
         }
 
-        window.updateFolderName = function (el) {
+        function updateFolderName(el) {
             const id = el.getAttribute('data-id');
             let clean = el.value.replace(/[^a-zA-Z0-9_\-\s]/g, "").trim();
             if (!clean) clean = globalGroupsData[id].defaultName;
             globalGroupsData[id].currentName = clean;
         }
 
-        window.toggleDetails = function (index) {
+        function toggleDetails(index) {
             const gallery = document.getElementById(`gallery-${index}`);
-            const isHidden = gallery.style.display === "none" || gallery.style.display === "";
-
-            if (!isHidden) {
+            if (gallery.style.display === "grid") {
                 gallery.style.display = "none";
-                gallery.innerHTML = ""; // Clear DOM to free memory
-                return;
-            }
-
-            gallery.style.display = "grid";
-
-            // Render logic with pagination
-            const photos = globalGroupsData[index].photos;
-            const CHUNK_SIZE = 50;
-            let currentOffset = 0;
-
-            function appendChunk() {
-                const chunk = photos.slice(currentOffset, currentOffset + CHUNK_SIZE);
-                if (chunk.length === 0) return;
-
-                const fragment = document.createDocumentFragment();
-                chunk.forEach(p => {
-                    const img = document.createElement('img');
-                    img.src = createSafeUrl(p.file); // Use safe tracked creator
-                    img.loading = "lazy";
-                    fragment.appendChild(img);
-                });
-                gallery.appendChild(fragment);
-                currentOffset += CHUNK_SIZE;
-
-                // Remove "Load More" button if it exists
-                const existingBtn = gallery.querySelector('.load-more-btn');
-                if (existingBtn) existingBtn.remove();
-
-                // Add "Load More" if needed
-                if (currentOffset < photos.length) {
-                    const remaining = photos.length - currentOffset;
-                    const btn = document.createElement('button');
-                    btn.className = "toggle-btn load-more-btn";
-                    btn.innerText = `Afficher plus (${remaining})`;
-                    btn.style.gridColumn = "1 / -1"; // Full width
-                    btn.style.width = "100%";
-                    btn.style.marginTop = "10px";
-                    btn.onclick = appendChunk;
-                    gallery.appendChild(btn);
+            } else {
+                gallery.style.display = "grid";
+                if (gallery.innerHTML === "") {
+                    globalGroupsData[index].photos.forEach(p => {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(p.file);
+                        img.loading = "lazy";
+                        gallery.appendChild(img);
+                    });
                 }
             }
-
-            appendChunk();
         }
 
         function getExifDate(file) {
@@ -988,44 +885,6 @@
                 btn.disabled = false;
             }
         }
-
-        // Expose to window for onclick
-        window.processImages = processImages;
-        window.downloadZip = downloadZip;
-
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('sorterOmegaTheme');
-            if (savedTheme) {
-                document.body.setAttribute('data-theme', savedTheme);
-                const btn = document.getElementById('themeBtn');
-                if (btn) btn.innerText = savedTheme === 'light' ? '☀️' : '🌙';
-                updateFavicon(savedTheme);
-            }
-
-            const fileInput = document.getElementById('fileInput');
-            const dropZone = document.getElementById('dropZone');
-            const timeGap = document.getElementById('timeGap');
-
-            if (timeGap) {
-                timeGap.addEventListener('input', (e) => {
-                    document.getElementById('gapValue').textContent = e.target.value;
-                });
-            }
-
-            if (dropZone) {
-                dropZone.addEventListener('click', () => fileInput.click());
-                dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
-                dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
-                dropZone.addEventListener('drop', (e) => {
-                    e.preventDefault(); dropZone.style.borderColor = 'var(--border)';
-                    handleFiles(e.dataTransfer.files);
-                });
-            }
-            if (fileInput) fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-            updateUI();
-        });
     </script>
 </body>
 

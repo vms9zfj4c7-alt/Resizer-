@@ -8,51 +8,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;600;800&display=swap"
     rel="stylesheet">
 
-  <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
-  <link rel="apple-touch-icon" href="icon-dark.png">
-  <link rel="manifest" id="appManifest" href="manifest-dark.json">
-
-  <!-- GIF Export Library (Local) -->
-  <script src="assets/vendor/gif.js"></script>
-  <!-- Worker loaded dynamically -->
-
-
   <style>
     :root {
-      /* DARK THEME (DEFAULT) */
       --bg-body: #09090b;
-      --primary: #8b5cf6;
-      --primary-glow: rgba(139, 92, 246, 0.4);
-      --accent: #10b981;
-
-      --device-body: #064e3b;
-      /* Dark Green (Emerald 900) */
-      /* Matte Black */
-      --device-face: #27272a;
-      --screen-border: #000;
-
+      --primary: #a855f7;
+      --primary-glow: rgba(168, 85, 247, 0.4);
+      --accent: #2dd4bf;
+      --gb-plastic: #d8d8d8;
       --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --btn-on: #3f3f46;
-      --btn-active: #52525b;
-    }
-
-    [data-theme="light"] {
-      --bg-body: #f1f5f9;
-      --primary: #7c3aed;
-      --primary-glow: rgba(124, 58, 237, 0.3);
-      --accent: #059669;
-
-      --device-body: #bfdbfe;
-      /* Light Blue (Blue 200) */
-      /* Clean Grey/White */
-      --device-face: #f8fafc;
-      --screen-border: #1e293b;
-
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --btn-on: #cbd5e1;
-      --btn-active: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
     }
 
     * {
@@ -61,11 +25,11 @@
     }
 
     body {
-      font-family: 'Outfit', 'Press Start 2P', system-ui, sans-serif;
+      font-family: 'Outfit', sans-serif;
       background-color: var(--bg-body);
       background-image:
-        radial-gradient(circle at 10% 20%, var(--primary-glow), transparent 25%),
-        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.15), transparent 25%);
+        radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(45, 212, 191, 0.15), transparent 25%);
       color: var(--text-main);
       margin: 0;
       min-height: 100vh;
@@ -74,124 +38,118 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
-      transition: background-color 0.3s, color 0.3s;
     }
 
     header {
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
+      text-align: center;
+      margin-bottom: 30px;
     }
 
-    .logo-text {
+    h1 {
       font-family: 'Press Start 2P', cursive;
-      font-size: 0.9rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      background-clip: text;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #d8b4fe 0%, #2dd4bf 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      margin-bottom: 15px;
     }
 
-    .header-controls {
-      display: flex;
-      gap: 10px;
+    .device-badge {
+      font-size: 0.7rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: rgba(45, 212, 191, 0.1);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .header-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border);
       color: var(--text-main);
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
       text-decoration: none;
+      position: absolute;
+      left: 20px;
+      top: 20px;
     }
 
     .header-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    [data-theme="light"] .header-btn {
-      border-color: rgba(0, 0, 0, 0.1);
-      background: rgba(0, 0, 0, 0.05);
+      transform: scale(1.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
     }
 
 
-    /* --- MODERN HANDHELD FRAME --- */
-    .device-frame {
-      background: var(--device-body);
-      width: 100%;
-      max-width: 420px;
-      border-radius: 40px;
-      /* More rounded like Switch/Pocket */
-      padding: 30px;
-      box-shadow:
-        0 50px 100px -20px rgba(0, 0, 0, 0.5),
-        inset 0 2px 4px rgba(255, 255, 255, 0.1),
-        inset 0 -4px 6px rgba(0, 0, 0, 0.3);
+    .gameboy {
+      background: var(--gb-plastic);
+      width: 400px;
+      padding: 40px;
+      border-radius: 15px 15px 80px 15px;
+      box-shadow: inset -5px -5px 10px #b0b0b0, inset 5px 5px 10px #ffffff, 0 20px 50px rgba(0, 0, 0, 0.8);
       position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      transition: background 0.3s;
+      border: 1px solid #999;
+    }
+
+    .screen-frame {
+      background: #222;
+      padding: 30px 45px 25px 55px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 20px var(--primary-glow);
+      position: relative;
+    }
+
+    .battery-group {
+      position: absolute;
+      left: 15px;
+      top: 40%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 30px;
+      gap: 5px;
     }
 
-    [data-theme="light"] .device-frame {
-      box-shadow:
-        0 30px 60px -15px rgba(0, 0, 0, 0.15),
-        inset 0 2px 4px rgba(255, 255, 255, 0.8),
-        inset 0 -4px 6px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(0, 0, 0, 0.05);
+    .led-dot {
+      width: 10px;
+      height: 10px;
+      background: #3d0000;
+      border-radius: 50%;
     }
 
-    /* SCREEN AREA */
-    .screen-bezel {
-      background: var(--screen-border);
+    .led-dot.active {
+      background: #ff0000;
+      box-shadow: 0 0 8px #ff0000;
+    }
+
+    .battery-text {
+      font-size: 5px;
+      color: #999;
+      font-family: sans-serif;
+    }
+
+    .canvas-container {
       width: 100%;
-      aspect-ratio: 1.1/1;
-      border-radius: 8px;
-      /* Sharp screen corners */
-      padding: 20px 20px 40px 20px;
-      /* Bottom padding for 'logo' */
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-      position: relative;
+      aspect-ratio: 1.1 / 1;
+      background: #000;
       display: flex;
-      align-items: center;
       justify-content: center;
-    }
-
-    .screen-glass {
-      width: 100%;
-      height: 100%;
-      background: #050505;
+      align-items: center;
       overflow: hidden;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Subtle scanline overlay */
-    .screen-glass::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-      background-size: 100% 2px, 3px 100%;
-      pointer-events: none;
-      opacity: 0.3;
-      z-index: 10;
+      border-radius: 4px;
     }
 
     canvas {
@@ -200,221 +158,114 @@
       image-rendering: pixelated;
     }
 
-    .screen-logo {
-      position: absolute;
-      bottom: 12px;
-      width: 100%;
-      text-align: center;
-      font-family: 'Outfit', sans-serif;
-      font-weight: 800;
-      letter-spacing: 2px;
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.3);
-      pointer-events: none;
-    }
-
-    /* CONTROLS AREA */
-    .controls-area {
-      width: 100%;
+    .controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 10px;
     }
 
-    /* D-PAD */
-    .dpad {
+    .d-pad {
+      width: 90px;
+      height: 90px;
       position: relative;
-      width: 100px;
-      height: 100px;
     }
 
-    .dpad button {
+    .d-pad-h,
+    .d-pad-v {
+      background: #333;
       position: absolute;
-      background: var(--btn-on);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: 0.1s;
-      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
     }
 
-    .dpad button:active {
-      transform: translateY(2px);
-      box-shadow: none;
-      background: var(--btn-active);
+    .d-pad-h {
+      width: 90px;
+      height: 30px;
+      top: 30px;
     }
 
-    /* REFINED BUTTONS */
-    .btn-action {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-family: 'Outfit', sans-serif;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .d-pad-v {
+      width: 30px;
+      height: 90px;
+      left: 30px;
+    }
+
+    .action-buttons {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-action:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-      filter: brightness(1.1);
-    }
-
-    .btn-action:active {
-      transform: translateY(0);
-    }
-
-    .btn-secondary {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-    }
-
-    .large-btn {
-      width: 100%;
-    }
-
-    #resultsPanel {
-      display: none;
-      /* Progressive Disclosure */
-      flex-direction: column;
       gap: 15px;
-      width: 100%;
-      margin-top: 20px;
-      animation: fadeIn 0.5s ease;
+      transform: rotate(-15deg);
     }
 
-    /* AB BUTTONS */
-    .action-group {
+    .btn-unit {
       display: flex;
-      gap: 20px;
-      transform: rotate(-10deg) translateY(10px);
+      flex-direction: column;
+      align-items: center;
     }
 
-    .btn-round {
-      width: 44px;
-      height: 44px;
+    .btn-omega {
+      width: 55px;
+      height: 55px;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
       border-radius: 50%;
       border: none;
-      background: linear-gradient(145deg, var(--btn-on), var(--device-face));
-      box-shadow:
-        5px 5px 10px rgba(0, 0, 0, 0.2),
-        -2px -2px 5px rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
-      font-weight: 800;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn-round.primary {
-      background: var(--primary);
-      color: white;
       box-shadow: 0 4px 10px var(--primary-glow);
-    }
-
-    .btn-round:active {
-      transform: scale(0.95);
-      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-round:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: grayscale(1);
-    }
-
-    /* SYSTEM BUTTONS (Start/Select) */
-    .system-btns {
-      display: flex;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .btn-pill {
-      width: 40px;
-      height: 10px;
-      background: var(--text-muted);
-      border-radius: 10px;
-      border: none;
-      opacity: 0.5;
       cursor: pointer;
-      transform: rotate(-15deg);
+      color: white;
+      font-family: 'Press Start 2P';
+      font-size: 10px;
       transition: 0.2s;
     }
 
-    .btn-pill:hover {
-      opacity: 1;
-      background: var(--primary);
+    .btn-omega:active {
+      transform: scale(0.9);
     }
 
+    .btn-omega:disabled {
+      background: #777;
+      box-shadow: none;
+      opacity: 0.5;
+    }
+
+    /* BOUTONS BAS ALIGNÉS CORRECTIONS ICI */
+    .bottom-menu {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 50px;
+      padding-right: 20px;
+    }
+
+    .menu-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-pill {
+      width: 55px;
+      height: 14px;
+      background: #999;
+      border-radius: 15px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #777;
+      /* On enlève la rotation ici pour que ce soit droit */
+    }
+
+    .btn-pill:active {
+      transform: translate(1px, 1px);
+      box-shadow: none;
+    }
+
+    .label {
+      font-size: 7px;
+      color: #555;
+      font-weight: 800;
+      text-align: center;
+    }
 
     input[type="file"] {
       display: none;
-    }
-
-    .led {
-      width: 6px;
-      height: 6px;
-      background: #333;
-      border-radius: 50%;
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    .led.on {
-      background: #10b981;
-      box-shadow: 0 0 10px #10b981;
-    }
-
-    /* TOOLTIPS */
-    .help-icon {
-      display: inline-flex;
-      width: 14px;
-      height: 14px;
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border-radius: 50%;
-      font-size: 9px;
-      align-items: center;
-      justify-content: center;
-      cursor: help;
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      margin-left: 2px;
-      vertical-align: middle;
-    }
-
-    .help-icon:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 120%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      white-space: nowrap;
-      z-index: 100;
-      pointer-events: none;
-      border: 1px solid var(--primary);
     }
   </style>
 </head>
@@ -422,119 +273,46 @@
 <body>
 
   <header>
-    <div class="logo-text">OMEGA PIXEL</div>
-    <div class="header-controls">
-      <a href="index.html" class="header-btn" title="Retour accueil">🏠</a>
-      <button class="header-btn" id="langBtn" onclick="toggleLanguage()">🇫🇷</button>
-      <button class="header-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
-    </div>
+    <a href="index.html" class="header-btn" title="Retour accueil">🏠</a>
+    <h1>PIXEL SCANNER OMEGA</h1>
+    <span id="deviceBadge" class="device-badge">Détection...</span>
   </header>
 
-  <div class="device-frame" id="dropZone">
-    <div class="led" id="powerLed"></div>
-
-    <div class="screen-bezel">
-      <div class="screen-glass">
-        <canvas id="c"></canvas>
-        <div id="placeholder"
-          style="position:absolute; color:#555; font-size:10px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
-          <span style="font-size:20px; display:block; margin-bottom:5px;">📂</span>
-          <span data-i18n="screenText" style="white-space:pre-line">DROP IMAGE</span>
-        </div>
+  <div class="gameboy" id="dropZone">
+    <div class="screen-frame">
+      <div class="battery-group">
+        <div class="led-dot" id="led"></div>
+        <div class="battery-text">PWR</div>
       </div>
-      <div class="screen-logo">OMEGA</div>
+      <div class="canvas-container"><canvas id="c"></canvas></div>
     </div>
 
-    <div class="controls-area">
-      <!-- D-PAD (Functional for moving maybe?) -->
-      <div class="dpad">
-        <button class="dpad-u" onclick="moveY(-1)"></button>
-        <button class="dpad-l" onclick="moveX(-1)"></button>
-        <div class="dpad-c"></div>
-        <button class="dpad-r" onclick="moveX(1)"></button>
-        <button class="dpad-d" onclick="moveY(1)"></button>
+    <div class="controls">
+      <div class="d-pad">
+        <div class="d-pad-h"></div>
+        <div class="d-pad-v"></div>
       </div>
 
-      <div class="system-btns">
-        <div style="text-align:center">
-          <button class="btn-pill" id="btnSelect" onclick="document.getElementById('upload').click()"></button>
-          <div style="font-size:8px; color:var(--text-muted); margin-top:4px; font-weight:bold;">
-            SELECT <span class="help-icon" data-tooltip="Choisir une image">?</span>
-          </div>
+      <div class="action-buttons">
+        <div class="btn-unit">
+          <button id="download" class="btn-omega" disabled>B</button>
+          <div class="label">SAVE</div>
         </div>
-        <div style="text-align:center">
-          <button class="btn-pill" onclick="location.reload()"></button>
-          <div style="font-size:8px; color:var(--text-muted); margin-top:4px; font-weight:bold;">RESET</div>
-        </div>
-      </div>
-
-      <div class="action-group">
-        <div style="text-align:center">
-          <button id="cta" class="btn-round primary">A</button>
-          <div style="font-size:8px; color:var(--text-muted); margin-top:4px; font-weight:bold;">
-            SCAN <span class="help-icon" data-tooltip="Lancer le scan">?</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <button id="download" class="btn-round" disabled>B</button>
-          <div style="font-size:8px; color:var(--text-muted); margin-top:4px; font-weight:bold;">
-            SAVE <span class="help-icon" data-tooltip="Sauvegarder">?</span>
-          </div>
+        <div class="btn-unit">
+          <button id="cta" class="btn-omega" disabled>A</button>
+          <div class="label">SCAN</div>
         </div>
       </div>
     </div>
 
-    <div id="resultsPanel">
-      <div style="display: flex; gap: 10px;">
-        <button class="btn-action large-btn" onclick="downloadImage()">
-          <span class="label" style="display:none">B</span> 💾 SAVE
-        </button>
-
-        <button class="btn-action large-btn" onclick="exportGIF()" style="background:#e11d48;">
-          <span class="label" style="display:none">GIF</span> 🎬 GIF
-        </button>
+    <div class="bottom-menu">
+      <div class="menu-unit">
+        <label for="upload" class="btn-pill"></label>
+        <div class="label">SELECT</div>
       </div>
-
-      <div
-        style="display:flex; flex-direction:column; gap:10px; background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid var(--border);">
-
-        <!-- PIXEL SIZE SLIDER -->
-        <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">
-          DENSITÉ PIXELS: <span id="pixelVal">64px</span>
-        </label>
-        <input type="range" id="sizeRange" min="32" max="192" step="8" value="64" onchange="updateResolution()"
-          oninput="document.getElementById('pixelVal').innerText = this.value + 'px'">
-
-        <!-- PALETTE SECTION -->
-        <div style="margin-top:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">PALETTE</label>
-            <div style="display:flex; align-items:center; gap:5px;">
-              <label style="font-size:0.7rem; color:var(--text-main);">Normal</label>
-              <input type="checkbox" id="normalModeToggle" onchange="toggleNormalMode()">
-            </div>
-          </div>
-
-          <div id="paletteControls" style="display:flex; justify-content:space-between; gap:5px;">
-            <input type="color" id="col0" value="#0f380f" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
-            <input type="color" id="col1" value="#306230" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
-            <input type="color" id="col2" value="#8bac0f" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
-            <input type="color" id="col3" value="#9bbc0f" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
-          </div>
-        </div>
-
-        <div
-          style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
-          <label
-            style="color:var(--text-muted); font-size:0.8rem; font-weight:bold; display:flex; align-items:center; gap:5px;">
-            ✏️ MODE ÉDITEUR
-          </label>
-          <input type="checkbox" id="editModeToggle" onchange="toggleEditMode()" style="transform:scale(1.2);">
-        </div>
+      <div class="menu-unit">
+        <div class="btn-pill" onclick="location.reload()"></div>
+        <div class="label">RESET</div>
       </div>
     </div>
 
@@ -542,543 +320,71 @@
   </div>
 
   <script>
-    // --- GLOBAL VARS ---
-    let currentLang = localStorage.getItem('omegaLang') || 'fr';
-    const translations = {
-      fr: {
-        title: "PIXEL SCANNER OMEGA",
-        detecting: "Détection...",
-        screenText: "GLISSEZ UNE IMAGE\nOU COLLEZ (CTRL+V)",
-        camBtn: "📷 PHOTO",
-        fileBtn: "📂 FICHIER",
-        resetBtn: "RESET",
-        downloadBtn: "💾 SAUVEGARDER",
-        deviceAndroid: "ANDROID 🤖",
-        deviceIOS: "iOS 🍎",
-        deviceMac: "MAC 🖥️",
-        deviceWin: "WINDOWS 💻",
-        deviceUnknown: "INCONNU",
-        actionTouch: "Appuyez pour sélectionner",
-        actionDrag: "Glissez ou Collez"
-      },
-      en: {
-        title: "PIXEL SCANNER OMEGA",
-        detecting: "Detecting...",
-        screenText: "DROP AN IMAGE\nOR PASTE (CTRL+V)",
-        camBtn: "📷 PHOTO",
-        fileBtn: "📂 FILE",
-        resetBtn: "RESET",
-        downloadBtn: "💾 SAVE",
-        deviceAndroid: "ANDROID 🤖",
-        deviceIOS: "iOS 🍎",
-        deviceMac: "MAC 🖥️",
-        deviceWin: "WINDOWS 💻",
-        deviceUnknown: "UNKNOWN",
-        actionTouch: "Tap to select",
-        actionDrag: "Drop or Paste"
-      }
-    };
-
-    function updateFavicon(theme) {
-      const icon = document.getElementById('appIcon');
-      const manifest = document.getElementById('appManifest');
-      if (icon) icon.href = `icon-${theme}.png`;
-      if (manifest) manifest.href = `manifest-${theme}.json`;
-    }
-
-    function toggleTheme() {
-      const body = document.body;
-      const btn = document.getElementById('themeBtn');
-      const isDark = body.getAttribute('data-theme') === 'dark';
-      const newTheme = isDark ? 'light' : 'dark';
-      body.setAttribute('data-theme', newTheme);
-      btn.innerText = isDark ? '☀️' : '🌙';
-      localStorage.setItem('omegaHubTheme', newTheme);
-      updateFavicon(newTheme);
-    }
-
-    function toggleLanguage() {
-      currentLang = currentLang === 'fr' ? 'en' : 'fr';
-      localStorage.setItem('omegaLang', currentLang);
-      updateUI();
-      // Reload to refresh localized placeholder references
-      location.reload();
-    }
-
-    function updateUI() {
-      document.getElementById('langBtn').innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
-
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[currentLang][key]) {
-          el.innerText = translations[currentLang][key];
-        }
-      });
-    }
-
-    // Init Logic
-    const savedTheme = localStorage.getItem('omegaHubTheme');
-    if (savedTheme) {
-      document.body.setAttribute('data-theme', savedTheme);
-      document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
-      updateFavicon(savedTheme);
-    } else {
-      document.body.setAttribute('data-theme', 'dark');
-      updateFavicon('dark');
-    }
-
-    updateUI();
-
     function detectDevice() {
       const ua = navigator.userAgent;
       const badge = document.getElementById('deviceBadge');
-
-      const t = translations[currentLang];
-      let type = t.deviceUnknown; let color = "#a855f7";
-
-      if (/Android/i.test(ua)) { type = t.deviceAndroid; color = "#10b981"; }
-      else if (/iPhone|iPad|iPod/i.test(ua)) { type = t.deviceIOS; color = "#ef4444"; }
-      else if (/Macintosh/i.test(ua)) { type = t.deviceMac; color = "#f472b6"; }
-      else if (/Windows/i.test(ua)) { type = t.deviceWin; color = "#3b82f6"; }
-
-      if (badge) {
-        badge.innerText = type;
-        badge.style.borderColor = color;
-        badge.style.color = color;
-        badge.style.background = `${color}15`;
-      }
+      let type = "Web 🌐"; let color = "#a855f7";
+      if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; }
+      else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; }
+      else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; }
+      badge.innerText = type; badge.style.borderColor = color; badge.style.color = color;
+      badge.style.background = `${color}15`;
     }
-    detectDevice();
 
     const PIXEL_SIZE = 12; const SCAN_SPEED = 7;
-    // --- PALETTES ---
-    const PALETTES = {
-      normal: 'normal', // Added for normal color mode
-      gameboy: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
-      bw: ['#000000', '#555555', '#aaaaaa', '#ffffff'],
-      sepia: ['#4b301b', '#8a6240', '#d2b48c', '#f5deb3'],
-      cyberpunk: ['#0b0014', '#551a8b', '#00ced1', '#ff1493'],
-      vaporwave: ['#1a103c', '#5a2e8c', '#b866d9', '#ff99e6']
-    };
-
-    let currentPalette = PALETTES.gameboy;
-    let isEditMode = false;
-
-    // --- EXISTING VARS ---
-    const canvas = document.getElementById("c"); // Renamed from 'c' to 'canvas'
-    const ctx = canvas.getContext("2d");
-    const upload = document.getElementById('upload');
+    const c = document.getElementById("c"); const ctx = c.getContext("2d");
     const btnScan = document.getElementById("cta"); const btnDownload = document.getElementById("download");
-    const led = document.getElementById("powerLed");
-    const placeholder = document.getElementById("placeholder");
-    let pixels = []; // Store pixel data for manual editing/redraw
-
-    // --- PIXEL SIZE & PALETTE UPDATE ---
-
-    function updateResolution() {
-      scan(); // Re-scan with new width
-    }
-
-    function toggleNormalMode() {
-      const isNormal = document.getElementById('normalModeToggle').checked;
-      const palDiv = document.getElementById('paletteControls');
-
-      if (isNormal) {
-        currentPalette = 'normal';
-        palDiv.style.opacity = '0.3';
-        palDiv.style.pointerEvents = 'none';
-      } else {
-        updateCustomPalette(); // Restore custom colors
-        palDiv.style.opacity = '1';
-        palDiv.style.pointerEvents = 'auto';
-      }
-
-      // If we are switching modes, we often need to RE-SCAN to bake in values, 
-      // OR we can just reRender if we stored true colors. 
-      // Our 'pixels' array stores true RGB (p.r, p.g, p.b).
-      // So we can just Re-Render!
-      reRenderPixels();
-    }
-
-    function updateCustomPalette() {
-      const c0 = document.getElementById('col0').value;
-      const c1 = document.getElementById('col1').value;
-      const c2 = document.getElementById('col2').value;
-      const c3 = document.getElementById('col3').value;
-      currentPalette = [c0, c1, c2, c3];
-
-      // If we are currently in normal mode, don't auto-switch unless user unchecked normal
-      if (document.getElementById('normalModeToggle').checked) return;
-
-      reRenderPixels();
-    }
-
-    function toggleEditMode() {
-      isEditMode = document.getElementById('editModeToggle').checked;
-      if (isEditMode) {
-        canvas.style.cursor = 'crosshair';
-        alert("Mode Éditeur activé: Cliquez sur les pixels pour cycler les couleurs !");
-      } else {
-        canvas.style.cursor = 'default';
-      }
-    }
-
-    // (Edit Mode handled by click listener below)
-
-    // ...
-    let g_pixelSize = 1;
-    let g_width = 0, g_height = 0;
-
-    // --- HELPER D-PAD ---
-    let offsetX = 0;
-    let offsetY = 0;
-    const MOVE_STEP = 20;
-
-    function moveX(dir) {
-      offsetX += dir * MOVE_STEP;
-      redraw();
-    }
-
-    function moveY(dir) {
-      offsetY += dir * MOVE_STEP;
-      redraw();
-    }
+    const inputUpload = document.getElementById("upload"); const led = document.getElementById("led");
 
     let img = new Image(); let pixelatedCanvas = null; let y = 0; let anim = null;
-
-    function redraw() {
-      if (!img.src) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Draw original image with offset
-      ctx.drawImage(img, offsetX, offsetY, canvas.width, canvas.height); // Note: we are stretching image to c.width/height in original code.
-      // Wait, original code was: ctx.drawImage(img, 0, 0, c.width, c.height);
-      // It calculated c.width/c.height based on ratio.
-      // So we should draw at offsetX, offsetY with same w, h.
-    }
+    detectDevice();
 
     function handleFile(file) {
-      if (!file || !file.type.startsWith('image/')) {
-        alert("Format non valide (Image requise)");
-        return;
-      }
+      if (!file || !file.type.startsWith('image/')) return;
       const reader = new FileReader();
-      reader.onload = (e) => {
-        img.src = e.target.result;
-        if (placeholder) placeholder.style.display = 'none';
-      };
+      reader.onload = (e) => { img.src = e.target.result; };
       reader.readAsDataURL(file);
     }
 
-    // Power LED on by default
-    if (led) led.classList.add('on');
-
-    document.getElementById('upload').onchange = (e) => handleFile(e.target.files[0]);
-
-    // Paste Support
-    document.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      // Standard for loop for better compatibility
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
-          handleFile(item.getAsFile());
-          return; // Take first image
-        }
-      }
-    });
-
-    // Drag & Drop Support
-    const dropZone = document.getElementById('dropZone');
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    dropZone.addEventListener('dragover', () => {
-      dropZone.style.boxShadow = "0 0 20px var(--primary)";
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.style.boxShadow = "";
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-      dropZone.style.boxShadow = "";
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length > 0) handleFile(files[0]);
-    });
-
-    // const c and ctx are already declared above
+    inputUpload.onchange = (e) => handleFile(e.target.files[0]);
+    window.onpaste = (e) => {
+      const items = e.clipboardData.items;
+      for (let i of items) if (i.kind === 'file') handleFile(i.getAsFile());
+    };
 
     img.onload = () => {
-      // Fit to container logic needs update since we don't have hardcoded numbers
-      // Use clientWidth of container
-      const parent = canvas.parentElement;
-      const maxWidth = parent.clientWidth;
-      const maxHeight = parent.clientHeight;
-
-      const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
-      canvas.width = img.width * ratio; canvas.height = img.height * ratio;
-
-      // Reset offsets on new image
-      offsetX = 0; offsetY = 0;
-
-      // Draw initial
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // Prepare pixelated version (full size matching canvas)
+      const ratio = Math.min(400 / img.width, 360 / img.height);
+      c.width = img.width * ratio; c.height = img.height * ratio;
+      ctx.drawImage(img, 0, 0, c.width, c.height);
       pixelatedCanvas = document.createElement('canvas');
-      pixelatedCanvas.width = canvas.width; pixelatedCanvas.height = canvas.height;
-
+      pixelatedCanvas.width = c.width; pixelatedCanvas.height = c.height;
       const pCtx = pixelatedCanvas.getContext('2d');
       const temp = document.createElement('canvas');
-      // PIXEL_SIZE can be dynamic?
-      const pSize = 12;
-      temp.width = Math.max(1, canvas.width / pSize); temp.height = Math.max(1, canvas.height / pSize);
-
+      temp.width = Math.max(1, c.width / PIXEL_SIZE); temp.height = Math.max(1, c.height / PIXEL_SIZE);
       const tCtx = temp.getContext('2d');
       tCtx.imageSmoothingEnabled = false; pCtx.imageSmoothingEnabled = false;
-
       tCtx.drawImage(img, 0, 0, temp.width, temp.height);
-      // We draw back to pixelatedCanvas filling it.
-      // NOTE: If we pan, we want to see the pixelated version of the PANNED image.
-      // So pixelatedCanvas stores the PIXELATED version of the WHOLE image?
-      // Actually here we are scaling the whole image to fit canvas and then pixelating THAT.
-      // So if we pan, we are just moving this result?
-      // NO. If we pan, we might want to move the underlying image?
-      // BUT current logic scales image to FIT canvas exactly. So panning would move it OFF screen.
-      // The user wants to "adjust" frame? likely means zooming/panning if it didn't fit perfectly?
-      // OR maybe they want to move it around?
-      // Given the code: `c.width = img.width * ratio`, it fits perfectly.
-      // Panning might be useful if they want to create an interesting crop or if we allow zooming later.
-      // For now, let's just allow moving it (it will create blank space).
-
-      pCtx.drawImage(temp, 0, 0, temp.width, temp.height, 0, 0, canvas.width, canvas.height);
-
-      // Enable Scan
-      btnScan.disabled = false;
-      btnScan.classList.add('primary');
-      btnDownload.disabled = true;
+      pCtx.drawImage(temp, 0, 0, temp.width, temp.height, 0, 0, c.width, c.height);
+      btnScan.disabled = false; btnDownload.disabled = true; y = 0;
     };
 
     function scan() {
-      if (!img.src) return;
-
-      // --- PIXELATION LOGIC (UPDATED WITH PALETTE) ---
-      const w = img.width;
-      const h = img.height;
-
-      // Target width from input
-      const targetWidth = parseInt(document.getElementById('sizeRange').value) || 64;
-
-      const scale = targetWidth / w;
-      const targetHeight = Math.floor(h * scale);
-
-      canvas.width = targetWidth * 4; // Scale up for visibility
-      canvas.height = targetHeight * 4;
-      // Let's use 4x visual scale so pixels look big
-
-      const pixelSize = 4;
-      g_pixelSize = pixelSize;
-      g_width = canvas.width; g_height = canvas.height;
-
-      // Draw temp context to read pixels
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = targetWidth;
-      tempCanvas.height = targetHeight;
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-      const imgData = tempCtx.getImageData(0, 0, targetWidth, targetHeight).data;
-
-      pixels = []; // Reset storage
-
-      // Show controls when scan starts/finishes
-      document.getElementById('resultsPanel').style.display = 'flex';
-
-      // Clear Canvas
-      const useNormalColors = (currentPalette === 'normal');
-      if (!useNormalColors) {
-        ctx.fillStyle = currentPalette[0]; // BG
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-
-      // Iterate and Quantize
-      let pixelIndex = 0;
-      for (let y = 0; y < targetHeight; y++) {
-        for (let x = 0; x < targetWidth; x++) {
-          const i = (y * targetWidth + x) * 4;
-
-          let fillStyle;
-          let colorIndex = 0;
-          let r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
-
-          if (useNormalColors) {
-            fillStyle = `rgb(${r},${g},${b})`;
-            colorIndex = -1; // Special flag
-          } else {
-            const avg = (r + g + b) / 3;
-            // Map brightness to 4 colors
-            if (avg > 64) colorIndex = 1;
-            if (avg > 128) colorIndex = 2;
-            if (avg > 192) colorIndex = 3; // Lightest
-            fillStyle = currentPalette[colorIndex];
-          }
-
-          // Store for redraws
-          pixels.push({
-            x: x * pixelSize,
-            y: y * pixelSize,
-            colorIndex: colorIndex,
-            r: r, g: g, b: b // Store True Color too
-          });
-
-          // Draw
-          ctx.fillStyle = fillStyle;
-          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-        }
-      }
-      btnDownload.disabled = false;
+      y += SCAN_SPEED;
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, c.width, y); ctx.clip();
+      ctx.drawImage(pixelatedCanvas, 0, 0); ctx.restore();
+      if (y < c.height) {
+        ctx.strokeStyle = "#2dd4bf"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke();
+        anim = requestAnimationFrame(scan);
+      } else { btnDownload.disabled = false; led.classList.remove('active'); }
     }
 
-    function reRenderPixels() {
-      if (pixels.length === 0) return;
-
-      if (currentPalette === 'normal') {
-        // Normal Mode Render
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pixels.forEach(p => {
-          ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
-          ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
-        });
-      } else {
-        // Palette Mode Render
-        ctx.fillStyle = currentPalette[0];
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        pixels.forEach(p => {
-          // If pixel was originally normal (-1), we need to quantize it now?
-          // Or just map it arbitrarily?
-          // Ideally we should re-quantize, but that's expensive here.
-          // We'll trust colorIndex is valid if we switched TO a palette FROM a palette.
-          // But if we switch FROM Normal TO Palette, colorIndex is -1.
-          // We need to RE-SCAN if we switch from Normal to Palette?
-          // Or just re-calculate colorIndex on the fly?
-
-          let colorIdx = p.colorIndex;
-          if (colorIdx === -1) {
-            // Re-quantize on the fly
-            const avg = (p.r + p.g + p.b) / 3;
-            if (avg > 64) colorIdx = 1;
-            if (avg > 128) colorIdx = 2;
-            if (avg > 192) colorIdx = 3;
-            else colorIdx = 0;
-            // Update pixel for future
-            p.colorIndex = colorIdx;
-          }
-
-          ctx.fillStyle = currentPalette[colorIdx];
-          ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
-        });
-      }
-    }
-
-    // CLICK HANDLER IMPL
-    canvas.onclick = (e) => {
-      if (!isEditMode || pixels.length === 0) return;
-
-      // Disable editing in Normal Mode for now
-      if (currentPalette === 'normal') {
-        alert("L'édition manuelle est désactivée en mode Couleurs Normales.");
-        return;
-      }
-
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-
-      // Find pixel
-      const gx = Math.floor(x / g_pixelSize) * g_pixelSize;
-      const gy = Math.floor(y / g_pixelSize) * g_pixelSize;
-
-      const p = pixels.find(px => Math.abs(px.x - gx) < 1 && Math.abs(px.y - gy) < 1);
-      if (p) {
-        // Cycle color
-        p.colorIndex = (p.colorIndex + 1) % 4;
-        // Redraw single pixel
-        ctx.fillStyle = currentPalette[p.colorIndex];
-        ctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
-      }
-    };
-
-    // --- EXPORT GIF ---
-    function exportGIF() {
-      if (pixels.length === 0) { alert("Scannez une image d'abord !"); return; }
-
-      const gif = new GIF({
-        workers: 2,
-        quality: 10,
-        width: canvas.width,
-        height: canvas.height,
-        workerScript: 'assets/vendor/gif.worker.js'
-      });
-
-      // Add Frames (Simulate Scan Animation?)
-      // Let's add the final image as frame 1
-      gif.addFrame(canvas, { delay: 2000 });
-
-      // Maybe add a blink effect or 'Scanning' text?
-      // Let's just export the static for now as per "Animation scan" request implies capturing the process
-      // But capturing the process post-facto is hard unless we replay it.
-      // Let's Replay Render for GIF!
-
-      // Clear
-      const buffer = document.createElement('canvas');
-      buffer.width = canvas.width; buffer.height = canvas.height;
-      const bctx = buffer.getContext('2d');
-
-      bctx.fillStyle = currentPalette[0];
-      bctx.fillRect(0, 0, buffer.width, buffer.height);
-
-      // Frame 1: Blank
-      gif.addFrame(bctx, { delay: 200, copy: true });
-
-      // Frame 2-5: Progressive rendering
-      const batchSize = Math.floor(pixels.length / 5);
-      for (let i = 1; i <= 5; i++) {
-        const end = Math.min(i * batchSize, pixels.length);
-        for (let j = (i - 1) * batchSize; j < end; j++) {
-          const p = pixels[j];
-          bctx.fillStyle = currentPalette[p.colorIndex];
-          bctx.fillRect(p.x, p.y, g_pixelSize, g_pixelSize);
-        }
-        gif.addFrame(bctx, { delay: 150, copy: true });
-      }
-
-      // Final Frame
-      gif.addFrame(bctx, { delay: 2000, copy: true });
-
-      gif.on('finished', function (blob) {
-        saveAs(blob, "pixel_art_scan.gif");
-      });
-
-      alert("Génération du GIF en cours...");
-      gif.render();
-    }
-
-    btnScan.onclick = () => { y = 0; cancelAnimationFrame(anim); scan(); };
+    btnScan.onclick = () => { y = 0; cancelAnimationFrame(anim); led.classList.add('active'); scan(); };
     btnDownload.onclick = () => {
       const a = document.createElement('a'); a.download = 'omega-pixel.png';
-      a.href = canvas.toDataURL(); a.click();
+      a.href = c.toDataURL(); a.click();
     };
   </script>
 </body>

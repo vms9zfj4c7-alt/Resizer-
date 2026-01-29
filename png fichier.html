@@ -5,37 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Studio PNG Pro - Ultimate</title>
-    <script src="assets/vendor/jszip.min.js"></script>
-    <script src="assets/vendor/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    <link rel="icon" type="image/png" href="icon-dark.png">
-    <link rel="manifest" href="manifest-dark.json">
 
     <style>
         :root {
-            /* DARK THEME (DEFAULT) */
             --bg-body: #09090b;
             --bg-card: #1e293b;
             --primary: #a855f7;
             --accent: #2dd4bf;
             --text: #f8fafc;
             --border: rgba(255, 255, 255, 0.1);
-            --btn-bg: #1e293b;
-        }
-
-        [data-theme="light"] {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --primary: #9333ea;
-            --accent: #0d9488;
-            --text: #1e293b;
-            --border: rgba(0, 0, 0, 0.1);
-            --btn-bg: #e2e8f0;
         }
 
         body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Outfit', sans-serif;
             background: var(--bg-body);
             color: var(--text);
             margin: 0;
@@ -43,494 +28,280 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
-        /* --- LAYOUT --- */
-        .app-container {
-            max-width: 1400px;
+        .container {
+            max-width: 900px;
             width: 100%;
-            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         .header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
-        }
-
-        .header-title-group {
-            display: flex;
-            align-items: center;
             gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
         }
 
-        .editor-workspace {
-            flex: 1;
-            display: flex;
-            gap: 20px;
-            min-height: 0;
-            /* Important for flex scrolling */
-        }
-
-        /* Updated Stage for Wrapper */
-        .editor-stage {
-            flex: 1;
-            position: relative;
-            background-color: var(--bg-stage);
-            background-image:
-                linear-gradient(45deg, #2a2a2e 25%, transparent 25%),
-                linear-gradient(-45deg, #2a2a2e 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #2a2a2e 75%),
-                linear-gradient(-45deg, transparent 75%, #2a2a2e 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            overflow: hidden;
-            border-radius: 12px;
-            border: 2px dashed rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-            /* Flex centering for empty state */
+        /* BOUTON RETOUR AJOUTÉ */
+        .btn-home {
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        #imageWrapper {
-            position: relative;
-            display: inline-block;
-            max-width: 95%;
-            max-height: 95%;
-            /* Ensure wrapper shrinks to fit image */
-            line-height: 0;
-        }
-
-        #activeImage {
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-            /* If we restrict wrapper size via JS/Max-stats, image fills it */
-            /* But actually, we want the wrapper to be bounded by the stage */
-            /* Let's try: render image, get dims, size wrapper? */
-            /* Easier: max-width/height on image, wrapper follows flow? */
-            /* No, for precise markers, wrapper must match image rect exactly. */
-            /* We will control this via JS resize or simply: */
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            /* Wrapper controls aspect ratio now */
-            cursor: crosshair;
-        }
-
-        .empty-state {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: var(--text-muted);
-            pointer-events: none;
-            width: 100%;
-            /* Ensure it doesn't wrap weirdly */
-            z-index: 10;
-        }
-
-        .paste-hint {
-            font-size: 0.8rem;
-            color: var(--accent);
-            font-weight: 600;
-            background: rgba(45, 212, 191, 0.1);
-            padding: 6px 16px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-top: 15px;
-            border: 1px solid rgba(45, 212, 191, 0.2);
-        }
-
-        /* MARKERS */
-        .marker {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-            z-index: 10;
-        }
-
-        .marker::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 4px;
-            height: 4px;
-            background: white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        /* --- RIGHT: SIDEBAR --- */
-        .editor-sidebar {
-            flex: 1;
-            min-width: 300px;
-            max-width: 350px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-        }
-
-        .panel {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: transform 0.2s, border-color 0.2s;
         }
 
-        .panel-title {
+        .btn-home:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+        }
+
+        h1 {
+            margin: 0;
+            background: linear-gradient(to right, #d8b4fe, #2dd4bf);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .device-badge {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.8rem;
-            color: var(--accent);
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
+            letter-spacing: 0.05em;
+            background: rgba(255, 255, 255, 0.05);
+            display: inline-flex;
             align-items: center;
+            gap: 6px;
+            animation: fadeIn 1s ease;
         }
 
-        /* --- CONTROLS --- */
+        .controls {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-block {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+
         .checkbox-wrapper {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 12px;
             background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
             border-radius: 10px;
+            border: 1px solid var(--border);
             cursor: pointer;
-            margin-bottom: 10px;
-            border: 1px solid transparent;
             transition: 0.2s;
         }
 
         .checkbox-wrapper:hover {
+            background: rgba(255, 255, 255, 0.06);
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.05);
         }
 
         .checkbox-wrapper input {
-            accent-color: var(--primary);
             width: 18px;
             height: 18px;
+            accent-color: var(--primary);
         }
 
         input[type=range] {
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            appearance: none;
+            accent-color: var(--accent);
             cursor: pointer;
+            height: 6px;
+            background: #334155;
+            border-radius: 5px;
+            appearance: none;
         }
 
         input[type=range]::-webkit-slider-thumb {
             appearance: none;
             width: 18px;
             height: 18px;
-            background: var(--accent);
+            background: white;
             border-radius: 50%;
             cursor: pointer;
-        }
-
-        /* --- BOTTOM: THUMBNAILS --- */
-        .thumbnail-strip {
-            height: 100px;
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            background: var(--bg-card);
-            padding: 10px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            align-items: center;
-        }
-
-        .thumb-item {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
-            border: 2px solid transparent;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            overflow: hidden;
-            background: #000;
-        }
-
-        .thumb-item.active {
-            border-color: var(--accent);
             box-shadow: 0 0 10px var(--accent);
         }
 
-        .thumb-item img {
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(168, 85, 247, 0.05);
+            transform: scale(1.005);
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            padding: 8px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            position: relative;
+            animation: fadeIn 0.4s ease;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+        }
+
+        .preview-box {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 10px;
+            overflow: hidden;
+            background-image: linear-gradient(45deg, #444 25%, transparent 25%), linear-gradient(-45deg, #444 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #444 75%), linear-gradient(-45deg, transparent 75%, #444 75%);
+            background-size: 20px 20px;
+            background-color: #333;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        .preview-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
 
-        .thumb-remove {
+        .btn-remove {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            background: rgba(239, 68, 68, 0.9);
+            top: -8px;
+            right: -8px;
+            background: #fb7185;
             color: white;
             border: none;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
             cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
-        /* --- BUTTONS --- */
-        .btn-action {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-action:active {
-            transform: scale(0.95);
-        }
-
-        .btn-home:active {
-            transform: scale(0.9);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .btn-home {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--text);
-        }
-
-        /* --- DROP OVERLAY --- */
-        .drop-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(168, 85, 247, 0.9);
-            z-index: 100;
+        .download-bar {
+            position: sticky;
+            bottom: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 15px 25px;
+            border-radius: 50px;
             display: none;
+            gap: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            width: fit-content;
+            margin: 0 auto;
             align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 800;
+            animation: slideUp 0.4s ease;
+            z-index: 100;
+        }
+
+        .input-prefix {
+            background: transparent;
+            border: none;
             color: white;
-            animation: fadeIn 0.2s;
-            pointer-events: none;
-            /* Let events pass to drop handler */
+            width: 120px;
+            outline: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px;
+            font-family: inherit;
+        }
+
+        .btn-dl {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-dl:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--primary);
         }
 
         .loading-overlay {
             position: absolute;
             inset: 0;
             background: rgba(0, 0, 0, 0.7);
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 50;
             border-radius: 20px;
+            z-index: 10;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0
-            }
-
-            to {
-                opacity: 1
-            }
-        }
-
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 900px) {
-            body {
-                padding: 10px;
-                height: auto;
-                /* Allow scrolling on mobile */
-                min-height: 100vh;
-                overflow-y: auto;
-            }
-
-            .app-container {
-                height: auto;
-                /* Auto height for stacked content */
-            }
-
-            .editor-workspace {
-                flex-direction: column;
-            }
-
-            .editor-stage {
-                height: 50vh;
-                /* Fixed height for stage on mobile */
-                width: 100%;
-                order: 1;
-                /* Stage on top */
-            }
-
-            .editor-sidebar {
-                width: 100%;
-                max-width: 100%;
-                min-width: 0;
-                order: 2;
-                /* Controls below */
-                max-height: none;
-                /* Allow full expansion */
-                overflow-y: visible;
-            }
-
-            .header-title-group h1 {
-                font-size: 1.2rem;
-                /* Smaller title */
-            }
-        }
-
-        .input-num {
-            background: transparent;
-            border: none;
-            color: var(--primary);
-            font-weight: bold;
-            font-size: 1rem;
-            width: 50px;
-            text-align: right;
-            font-family: inherit;
-        }
-
-        .input-num:focus {
-            outline: none;
-            border-bottom: 1px solid var(--primary);
-            border-bottom: 1px solid var(--primary);
-        }
-
-        /* TOOLTIPS */
-        .help-icon {
-            display: inline-flex;
-            width: 16px;
-            height: 16px;
-            background: rgba(124, 58, 237, 0.2);
-            color: var(--primary);
-            border-radius: 50%;
-            font-size: 10px;
-            align-items: center;
-            justify-content: center;
-            cursor: help;
-            margin-left: 5px;
-            position: relative;
-            border: 1px solid var(--primary);
-        }
-
-        .help-icon:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            white-space: nowrap;
-            z-index: 100;
-            pointer-events: none;
-            border: 1px solid var(--primary);
-        }
-
-        /* FLOATING CONTROLS */
-        .zoom-controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .zoom-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s;
-        }
-
-        .zoom-btn:hover {
-            transform: scale(1.1);
-            background: var(--primary);
-            color: white;
-        }
-
-        /* ERASER CURSOR */
-        .eraser-active {
-            cursor: cell !important;
-            /* Visual cue */
-        }
-
-
-        /* ANIMATIONS */
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
             }
 
             to {
@@ -538,588 +309,131 @@
                 transform: translateY(0);
             }
         }
-
-        @keyframes popIn {
-            0% {
-                transform: translate(-50%, -50%) scale(0);
-            }
-
-            80% {
-                transform: translate(-50%, -50%) scale(1.2);
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        .container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            background: var(--bg-panel);
-            overflow: hidden;
-            animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        header {
-            animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s backwards;
-        }
-
-        .marker {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: rgba(239, 68, 68, 0.8);
-            border: 2px solid white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
-            z-index: 10;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .btn-action {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .thumbnail:hover {
-            transform: scale(1.05);
-            z-index: 5;
-        }
-
-        /* --- MODERN INPUT --- */
-        .input-group-modern {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 4px 15px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 5px;
-        }
-
-        .input-group-modern:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .input-group-modern:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .input-text {
-            background: transparent;
-            border: none;
-            color: var(--text);
-            padding: 10px 0;
-            width: 100%;
-            font-family: inherit;
-            font-size: 0.95rem;
-            outline: none;
-            font-weight: 500;
-        }
-
-        .input-text::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        .input-icon {
-            margin-right: 12px;
-            opacity: 0.5;
-            font-size: 1.1rem;
-        }
     </style>
 </head>
 
 <body>
 
-    <!-- HIDDEN INPUT IF NEEDED FOR COMPATIBILITY OR DRAG/DROP JS REF -->
-    <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
-
-    <div class="app-container" id="dropZone"> <!-- Whole app is drop zone -->
-
-        <!-- HEADER -->
+    <div class="container">
         <div class="header">
-            <div class="header-title-group">
-                <a href="index.html" class="btn-home" title="Retour accueil">🏠</a>
-                <h1 data-i18n="title">Studio PNG Pro</h1>
+            <a href="index.html" class="btn-home" title="Retour accueil">🏠</a>
+            <h1>Studio PNG Pro</h1>
+            <span id="deviceBadge" class="device-badge">Detecting...</span>
+        </div>
 
-                <span id="deviceBadge" class="device-badge"
-                    style="font-size:0.9rem; padding:4px 8px; border-radius:12px; border:1px solid transparent;">...</span>
+        <div class="controls">
+            <div class="control-block">
+                <div class="control-label">MODE DE DÉTOURAGE</div>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="checkRemoveBg" checked onchange="updateSettings()">
+                    <span>🪄 Activer la transparence</span>
+                </label>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="checkContiguous" checked onchange="updateSettings()">
+                    <span>🛡️ <b>Mode Contigu</b> (Protège l'intérieur)</span>
+                </label>
+                <small style="color:#64748b; font-size:0.8rem; line-height:1.4">
+                    <b>Coché</b> = Enlève le fond autour uniquement.<br>
+                    <b>Décoché</b> = Enlève la couleur partout.
+                </small>
             </div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-home" id="langBtn" onclick="toggleLanguage()">🇫🇷</button>
-                <button class="btn-home" id="themeBtn" onclick="toggleTheme()">🌙</button>
+
+            <div class="control-block">
+                <div class="control-label">
+                    SENSIBILITÉ
+                    <span id="tolDisplay" style="color:var(--accent)">15%</span>
+                </div>
+                <input type="range" id="rangeTolerance" min="1" max="100" value="15" oninput="updateSettings()">
+                <div style="font-size:0.8rem; color:#64748b; margin-top:5px;">
+                    Ajustez si le fond ne part pas complètement.
+                </div>
             </div>
         </div>
 
-        <!-- MAIN EDITOR WORKSPACE -->
-        <div class="editor-workspace">
+        <label class="drop-zone" id="dropZone" for="fileInput">
+            <span style="font-size:3rem">📂</span><br>
+            <div style="font-size:1.2rem; font-weight:bold; margin:10px 0;">Glissez vos images ici</div>
+            <div id="pasteHint" style="color:var(--accent); font-size:0.9rem">Supporte le copier-coller</div>
+            <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
 
-            <!-- STAGE (LEFT) -->
-            <div class="editor-stage" id="editorStage">
-                <div class="empty-state" id="emptyState">
-                    <div style="font-size:3rem; margin-bottom:10px;">📂</div>
-                    <h2 data-i18n="dropTitle" style="margin:0">Glissez vos images ici</h2>
-                    <p data-i18n="clickHint" style="margin-top:5px; font-size:0.9rem; opacity:0.8">
-                        Ou cliquez pour importer
-                    </p>
-                    <div class="paste-hint" id="pasteHint">Ou faites Ctrl+V pour coller</div>
-                </div>
-                <!-- Active Image Wrapper -->
-                <div id="imageWrapper">
-                    <!-- Image canvas will be here -->
-                    <canvas id="canvasDisplay" style="width:100%; height:100%; object-fit:contain;"></canvas>
-                </div>
-
-                <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="toggleCompare(true)" onmouseup="toggleCompare(false)"
-                        onmouseleave="toggleCompare(false)" title="Maintenir pour voir l'original">👁️</button>
-                    <button class="zoom-btn" onclick="adjustZoom(-0.1)">-</button>
-                    <button class="zoom-btn" onclick="resetZoom()">1:1</button>
-                    <button class="zoom-btn" onclick="adjustZoom(0.1)">+</button>
-                </div>
-
-                <div id="mainLoader" class="loading-overlay">
-                    <div style="color:white; font-weight:bold">⏳ ...</div>
-                </div>
-
-                <!-- DRAG OVERLAY -->
-                <div class="drop-overlay" id="dropOverlay">
-                    📂 Lâchez pour importer
-                </div>
+            <div id="mainLoader" class="loading-overlay" style="display:none">
+                <div style="color:white; font-weight:bold">⏳ Calcul en cours...</div>
             </div>
+        </label>
 
-            <!-- SIDEBAR (RIGHT) -->
-            <div class="editor-sidebar">
+        <div class="gallery" id="gallery"></div>
+    </div>
 
-                <!-- SETTINGS PANEL -->
-                <div class="panel">
-                    <div class="panel-title" data-i18n="modeTitle">MODE</div>
-
-                    <label class="checkbox-wrapper">
-                        <input type="checkbox" id="checkRemoveBg" checked onchange="updateSettings()">
-                        <span data-i18n="checkTrans">Activer transparence</span>
-                    </label>
-
-                    <label class="checkbox-wrapper">
-                        <input type="checkbox" id="checkContiguous" onchange="updateSettings()">
-                        <span data-i18n="checkContig">Mode Contigu</span>
-                    </label>
-                    <small
-                        style="color:var(--text); opacity:0.6; font-size:0.75rem; display:block; margin-top:-5px; margin-bottom:10px;"
-                        data-i18n="checkDesc">
-                        Décoché = S'applique à toute l'image
-                    </small>
-
-                    <div class="panel-group" style="display:flex; justify-content:space-around; margin-top:10px;">
-                        <button class="zoom-btn" id="btnMagic" onclick="setTool('magic')"
-                            style="border-radius:12px; width:auto; padding:0 15px; font-size:0.9rem; background:var(--primary); color:white;">
-                            🪄 Auto
-                        </button>
-                        <button class="zoom-btn" id="btnEraser" onclick="setTool('eraser')"
-                            style="border-radius:12px; width:auto; padding:0 15px; font-size:0.9rem;">
-                            🧼 Gomme
-                        </button>
-                    </div>
-
-                    <div class="panel-title" style="margin-top:20px;">
-                        <span data-i18n="tolTitle">TOLÉRANCE</span>
-                        <span class="help-icon"
-                            data-tooltip="Sensibilité de la suppression de couleur (0-100%)">?</span>
-                        <span>
-                            <input type="number" id="numTolerance" class="input-num" min="0" max="100" value="15"
-                                oninput="syncTolerance('num')">
-                            <span style="color:var(--primary)">%</span>
-                        </span>
-                    </div>
-                    <input type="range" id="rangeTolerance" min="1" max="100" value="15"
-                        oninput="syncTolerance('range')">
-                </div>
-
-                <!-- ACTIONS PANEL -->
-                <div class="panel" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-                    <div class="panel-title" style="margin-top:20px;">
-                        FOND
-                    </div>
-                    <!-- Background Controls -->
-                    <div class="panel-group" style="display:flex; align-items:center; gap:10px;">
-                        <button class="zoom-btn" onclick="toggleBackground('transparent')" title="Transparent"
-                            style="background:var(--bg-stage); background-image:linear-gradient(45deg, #333 25%, transparent 25%), linear-gradient(-45deg, #333 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #333 75%), linear-gradient(-45deg, transparent 75%, #333 75%); background-size:10px 10px; width:30px; height:30px;"></button>
-                        <input type="color" id="bgColorPicker" value="#ffffff"
-                            oninput="toggleBackground('color', this.value)"
-                            style="width:30px; height:30px; padding:0; border:none; border-radius:50%; cursor:pointer;">
-                    </div>
-
-                    <div style="flex:1;"></div><!-- Spacer -->
-
-                    <div>
-                        <div class="panel-title">ACTIONS</div>
-                        <div class="panel-group" style="border-top:1px solid var(--border); padding-top:20px;">
-                            <div class="input-group-modern">
-                                <span class="input-icon">✎</span>
-                                <input type="text" id="prefixInput" class="input-text" placeholder="Nom fichier..."
-                                    data-i18n="prefix">
-                            </div>
-                            <div style="text-align:right; margin-top:4px;">
-                                <span style="font-size:0.75rem; opacity:0.6; margin-right:5px;">Préfixe</span>
-                                <span class="help-icon" data-tooltip="Texte ajouté au début du nom de fichier">?</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <button class="btn-action btn-secondary" onclick="undoLastPoint()"
-                            style="font-size:0.9rem; padding:10px;">
-                            ↩️ <span data-i18n="undo">Annuler dernier</span>
-                            <span class="help-icon" data-tooltip="Annule le dernier point ajouté">?</span>
-                        </button>
-                        <button class="btn-action btn-secondary" onclick="resetPoints()"
-                            style="font-size:0.9rem; padding:10px; background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4); color:#fcaa9e;">
-                            🗑️ <span data-i18n="reset">Réinitialiser</span>
-                            <span class="help-icon"
-                                data-tooltip="Efface tous les points et remet l'image à zéro">?</span>
-                        </button>
-                        <button class="btn-action btn-primary" onclick="downloadCurrent()">
-                            <span data-i18n="dlOne">💾 Sauvegarder</span>
-                        </button>
-                        <button class="btn-action btn-secondary" onclick="downloadZip()">
-                            <span data-i18n="dlAll">📦 Tout (ZIP)</span>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- THUMBNAIL STRIP (BOTTOM) -->
-        <div class="thumbnail-strip" id="thumbnailStrip">
-            <!-- Thumbs go here -->
-        </div>
-
+    <div class="download-bar" id="downloadBar">
+        <input type="text" id="prefixInput" class="input-prefix" placeholder="Nom (ex: logo)">
+        <button class="btn-dl" onclick="downloadZip()">⬇️ Tout télécharger</button>
     </div>
 
     <script>
-        // --- GLOBAL VARS ---
-        let currentLang = localStorage.getItem('omegaLang') || 'fr';
         let imagesData = [];
-        let activeImageId = null;
-        let activeItem = null;
         let processingTimeout;
 
-        // --- NEW STATE VARS ---
-        let zoomLevel = 1;
-        let currentTool = 'magic';
-        let isDrawing = false;
-        let lastX = 0, lastY = 0;
-        let originalImageData = null;
+        // --- DETECTION APPAREIL ---
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const badge = document.getElementById('deviceBadge');
+            const hint = document.getElementById('pasteHint');
+            let type = "Web", color = "#94a3b8", txt = "Glissez ou Ctrl+V pour coller";
 
-        const translations = {
-            fr: {
-                title: "Studio PNG Pro",
-                dropTitle: "Glissez vos images ici",
-                clickHint: "Ou cliquez pour importer",
-                pasteText: "Ou faites Ctrl+V pour coller",
-                modeTitle: "MODE",
-                checkTrans: "Transparence",
-                checkContig: "Mode Contigu",
-                checkDesc: "Coché = Zone fermée. Décoché = Partout (Global).",
-                tolTitle: "TOLÉRANCE",
-                dlOne: "💾 Sauvegarder",
-                dlAll: "📦 Tout (ZIP)",
-                undo: "Annuler dernier",
-                reset: "Tout effacer",
-                prefix: "Nom fichier..."
-            },
-            en: {
-                title: "Studio PNG Pro",
-                dropTitle: "Drop images here",
-                clickHint: "Or click to upload",
-                pasteText: "Or Ctrl+V to paste",
-                modeTitle: "MODE",
-                checkTrans: "Transparency",
-                checkContig: "Contiguous",
-                checkDesc: "Checked = Enclosed area. Unchecked = Everywhere.",
-                tolTitle: "TOLERANCE",
-                dlOne: "💾 Save Current",
-                dlAll: "📦 Save All (ZIP)",
-                undo: "Undo Last",
-                reset: "Reset All",
-                prefix: "Filename..."
+            if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; txt = "Appui long pour coller"; }
+            else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; txt = "Appui long pour coller"; }
+            else if (/Macintosh/i.test(ua)) { type = "Mac 🖥️"; color = "#f472b6"; txt = "Glissez ou Cmd+V pour coller"; }
+            else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; }
+
+            if (badge) {
+                badge.innerText = type;
+                badge.style.color = color;
+                badge.style.borderColor = color;
+                badge.style.background = color + "15";
             }
+            if (hint) hint.innerHTML = txt;
+        }
+        detectDevice();
+
+        // --- REGLAGES ---
+        const getSettings = () => ({
+            active: document.getElementById('checkRemoveBg').checked,
+            contiguous: document.getElementById('checkContiguous').checked,
+            tolerance: parseInt(document.getElementById('rangeTolerance').value)
+        });
+
+        const updateSettings = () => {
+            document.getElementById('tolDisplay').innerText = document.getElementById('rangeTolerance').value + "%";
+            clearTimeout(processingTimeout);
+            document.getElementById('mainLoader').style.display = 'flex';
+
+            processingTimeout = setTimeout(() => {
+                imagesData.forEach(item => processImage(item));
+                document.getElementById('mainLoader').style.display = 'none';
+            }, 100);
         };
 
-        function updateUI() {
-            const btnLang = document.getElementById('langBtn');
-            if (btnLang) btnLang.innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
-
-            const t = translations[currentLang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key]) el.innerText = t[key];
-            });
-
-            const prefixInput = document.getElementById('prefixInput');
-            if (prefixInput) prefixInput.placeholder = t.prefix;
-        }
-
-        // --- CORE LOGIC ---
-        function setActiveImage(id) {
-            activeImageId = id;
-            activeItem = imagesData.find(x => x.id === id) || null;
-
-            // Reset cache for new image
-            originalImageData = null;
-
-            updateEditorView();
-            updateThumbnails();
-        }
-
-        function updateEditorView() {
-            const wrapper = document.getElementById('imageWrapper');
-            const emptyState = document.getElementById('emptyState');
-
-            document.querySelectorAll('.marker').forEach(m => m.remove());
-
-            if (!activeItem) {
-                wrapper.style.display = 'none';
-                emptyState.style.display = 'block';
-                // Clear canvas to prevent ghosting
-                const canvas = document.getElementById('canvasDisplay');
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
-                return;
-            }
-
-            wrapper.style.display = 'inline-block';
-            emptyState.style.display = 'none';
-
-            processImage(activeItem, true).then(() => {
-                activeItem.points.forEach(p => {
-                    const marker = document.createElement('div');
-                    marker.className = 'marker';
-                    const pctX = (p.x / activeItem.sourceImg.width) * 100;
-                    const pctY = (p.y / activeItem.sourceImg.height) * 100;
-                    marker.style.left = pctX + '%';
-                    marker.style.top = pctY + '%';
-                    wrapper.appendChild(marker);
-                });
-                fitImageToStage();
-            });
-        }
-
-        window.addEventListener('resize', fitImageToStage);
-
-        function fitImageToStage() {
-            if (!activeItem) return;
-            const stage = document.getElementById('editorStage');
-            const wrapper = document.getElementById('imageWrapper');
-            const nw = activeItem.sourceImg.naturalWidth || activeItem.sourceImg.width;
-            const nh = activeItem.sourceImg.naturalHeight || activeItem.sourceImg.height;
-
-            const sw = stage.clientWidth - 40;
-            const sh = stage.clientHeight - 40;
-            const ratio = nw / nh;
-            const sRatio = sw / sh;
-
-            let finalW, finalH;
-            if (ratio > sRatio) {
-                finalW = sw;
-                finalH = sw / ratio;
-            } else {
-                finalH = sh;
-                finalW = sh * ratio;
-            }
-            wrapper.style.width = finalW + 'px';
-            wrapper.style.height = finalH + 'px';
-        }
-
-        // --- SETTINGS LOGICS ---
-        function getSettings() {
-            return {
-                active: document.getElementById('checkRemoveBg').checked,
-                contiguous: document.getElementById('checkContiguous').checked,
-                tolerance: parseInt(document.getElementById('rangeTolerance').value)
-            };
-        }
-
-        function floodFillEuclidean(ctx, w, h, startX, startY, color, tol) {
-            const imgData = ctx.getImageData(0, 0, w, h);
-            const d = imgData.data;
-            const stack = [startY * w + startX];
-            const maxDist = 442;
-            const allowedDist = (tol / 100) * maxDist;
-            const visited = new Uint8Array(w * h);
-
-            while (stack.length) {
-                const pIdx = stack.pop();
-                if (visited[pIdx]) continue;
-                visited[pIdx] = 1;
-
-                const curr = pIdx * 4;
-                const dist = Math.sqrt(
-                    Math.pow(d[curr] - color.r, 2) +
-                    Math.pow(d[curr + 1] - color.g, 2) +
-                    Math.pow(d[curr + 2] - color.b, 2)
-                );
-
-                if (dist <= allowedDist) {
-                    d[curr + 3] = 0;
-                    const xx = pIdx % w;
-                    if (xx > 0 && !visited[pIdx - 1]) stack.push(pIdx - 1);
-                    if (xx < w - 1 && !visited[pIdx + 1]) stack.push(pIdx + 1);
-                    if ((pIdx - w) >= 0 && !visited[pIdx - w]) stack.push(pIdx - w);
-                    if ((pIdx + w) < (w * h) && !visited[pIdx + w]) stack.push(pIdx + w);
-                }
-            }
-            ctx.putImageData(imgData, 0, 0);
-        }
-
-        function syncTolerance(source) {
-            const range = document.getElementById('rangeTolerance');
-            const num = document.getElementById('numTolerance');
-            if (source === 'range') num.value = range.value;
-            else range.value = num.value;
-            updateSettings();
-        }
-
-        function updateSettings() {
-            if (activeItem) {
-                document.getElementById('mainLoader').style.display = 'flex';
-                if (window.processingTimeout) clearTimeout(window.processingTimeout);
-                window.processingTimeout = setTimeout(() => {
-                    processImage(activeItem, true);
-                    document.getElementById('mainLoader').style.display = 'none';
-                }, 100);
-            }
-        }
-
-        // --- PROCESSING ---
-        // Refactored to use OFFSCREEN canvas to prevent superposition/ghosting
-        async function processImage(item, updateView = true) {
-            if (!item) return;
-
-            // Offscreen Canvas
-            const canvas = document.createElement('canvas');
-            const w = item.sourceImg.width;
-            const h = item.sourceImg.height;
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-
-            // Draw Base
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.drawImage(item.sourceImg, 0, 0);
-
-            // Cache Original (if updating view)
-            if (updateView && activeImageId === item.id) {
-                if (!originalImageData || originalImageData.width !== w) {
-                    originalImageData = ctx.getImageData(0, 0, w, h);
-                }
-            }
-
-            const settings = getSettings();
-            if (settings.active && item.points.length > 0) {
-                const imgData = ctx.getImageData(0, 0, w, h);
-                const data = imgData.data;
-                const maxDist = 442;
-                const allowedDist = (settings.tolerance / 100) * maxDist;
-
-                if (settings.contiguous) {
-                    item.points.forEach(p => {
-                        const startX = Math.floor(p.x);
-                        const startY = Math.floor(p.y);
-                        floodFillEuclidean(ctx, w, h, startX, startY, p.color, settings.tolerance);
-                    });
-                } else {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let remove = false;
-                        for (let p of item.points) {
-                            const dist = Math.sqrt(
-                                Math.pow(data[i] - p.color.r, 2) +
-                                Math.pow(data[i + 1] - p.color.g, 2) +
-                                Math.pow(data[i + 2] - p.color.b, 2)
-                            );
-                            if (dist <= allowedDist) { remove = true; break; }
-                        }
-                        if (remove) data[i + 3] = 0;
-                    }
-                    ctx.putImageData(imgData, 0, 0);
-                }
-            }
-
-            // Update View Only If Active
-            if (updateView && activeImageId === item.id) {
-                const displayCanvas = document.getElementById('canvasDisplay');
-                if (displayCanvas) {
-                    displayCanvas.width = w;
-                    displayCanvas.height = h;
-                    const dCtx = displayCanvas.getContext('2d');
-                    dCtx.clearRect(0, 0, w, h);
-                    dCtx.drawImage(canvas, 0, 0);
-                }
-            }
-
-            return new Promise(resolve => {
-                canvas.toBlob(blob => {
-                    if (item.url) URL.revokeObjectURL(item.url);
-                    item.blob = blob;
-                    item.url = URL.createObjectURL(blob);
-
-                    const tImg = document.querySelector(`.thumb-item[onclick*="${item.id}"] img`);
-                    if (tImg) tImg.src = item.url;
-
-                    resolve();
-                }, 'image/png');
-            });
-        }
-
-        // --- DRAG & DROP & CLICK UPLOAD ---
-        const dropZone = document.getElementById('dropZone');
+        // --- FICHIERS ---
         const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const ol = document.getElementById('dropOverlay');
-            if (ol) ol.style.display = 'flex';
-        });
-
-        dropZone.addEventListener('dragleave', (e) => {
-            const ol = document.getElementById('dropOverlay');
-            if (e.target === ol && ol) ol.style.display = 'none';
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const ol = document.getElementById('dropOverlay');
-            if (ol) ol.style.display = 'none';
-            handleFiles(e.dataTransfer.files);
-        });
-
-        document.getElementById('emptyState').addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#a855f7'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'rgba(255,255,255,0.1)'; });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = 'rgba(255,255,255,0.1)'; handleFiles(e.dataTransfer.files); });
+
+        document.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            const files = [];
+            for (let item of items) if (item.kind === 'file' && item.type.match('image.*')) files.push(item.getAsFile());
+            if (files.length) handleFiles(files);
+        });
 
         function handleFiles(files) {
             if (files.length === 0) return;
             document.getElementById('mainLoader').style.display = 'flex';
-            let loaded = 0;
-            const newIds = [];
-            let hasError = false;
 
+            let loaded = 0;
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -1129,272 +443,142 @@
                             id: Math.random().toString(36).substr(2, 9),
                             sourceImg: img,
                             name: file.name.split('.')[0],
-                            url: null, blob: null, points: []
+                            url: null,
+                            blob: null
                         };
                         imagesData.push(newItem);
-                        newIds.push(newItem.id);
-                        processImage(newItem, false)
-                            .then(() => { loaded++; checkDone(); })
-                            .catch(err => {
-                                console.error(err);
-                                loaded++;
-                                hasError = true;
-                                checkDone();
-                            });
+                        processImage(newItem);
+                        createGalleryCard(newItem);
+
+                        loaded++;
+                        if (loaded === files.length) {
+                            document.getElementById('mainLoader').style.display = 'none';
+                            updateUI();
+                        }
                     };
-                    img.onerror = () => { loaded++; hasError = true; checkDone(); };
                     img.src = e.target.result;
                 };
-                reader.onerror = () => { loaded++; hasError = true; checkDone(); };
                 reader.readAsDataURL(file);
             });
-
-            function checkDone() {
-                if (loaded === files.length) {
-                    document.getElementById('mainLoader').style.display = 'none';
-                    if (newIds.length > 0) setActiveImage(newIds[newIds.length - 1]);
-                    if (hasError) alert("Certaines images n'ont pas pu être chargées.");
-                }
-            }
         }
 
-        function updateThumbnails() {
-            const container = document.getElementById('thumbnailStrip');
-            container.innerHTML = '';
-            imagesData.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `thumb-item ${item.id === activeImageId ? 'active' : ''}`;
-                div.onclick = () => setActiveImage(item.id);
-                const img = document.createElement('img');
-                img.src = item.url || item.sourceImg.src;
-                const btn = document.createElement('button');
-                btn.className = 'thumb-remove';
-                btn.innerHTML = '×';
-                btn.onclick = (e) => { e.stopPropagation(); removeImage(item.id); };
-                div.appendChild(img);
-                div.appendChild(btn);
-                container.appendChild(div);
-            });
-        }
-
-        function removeImage(id) {
-            const idx = imagesData.findIndex(x => x.id === id);
-            if (idx === -1) return;
-            URL.revokeObjectURL(imagesData[idx].url);
-            imagesData.splice(idx, 1);
-            if (activeImageId === id) {
-                if (imagesData.length > 0) setActiveImage(imagesData[Math.max(0, idx - 1)].id);
-                else setActiveImage(null);
-            } else updateThumbnails();
-        }
-
-        function undoLastPoint() {
-            if (!activeItem) return;
-            if (activeItem.points.length > 0) {
-                activeItem.points.pop();
-                updateSettings();
-            }
-        }
-
-        function resetPoints() {
-            if (!activeItem) return;
-            activeItem.points = [];
-            updateSettings();
-        }
-
-        function adjustZoom(delta) {
-            zoomLevel += delta;
-            if (zoomLevel < 0.1) zoomLevel = 0.1;
-            if (zoomLevel > 5) zoomLevel = 5;
-            applyZoom();
-        }
-
-        function resetZoom() {
-            zoomLevel = 1;
-            applyZoom();
-        }
-
-        function applyZoom() {
-            const canvas = document.getElementById('canvasDisplay');
-            if (canvas) {
-                canvas.style.transform = `scale(${zoomLevel})`;
-                canvas.style.transformOrigin = "center center";
-            }
-        }
-
-        function setTool(tool) {
-            currentTool = tool;
-            const btnMagic = document.getElementById('btnMagic');
-            const btnEraser = document.getElementById('btnEraser');
-            const canvas = document.getElementById('canvasDisplay');
-            if (tool === 'magic') {
-                btnMagic.style.background = 'var(--primary)'; btnMagic.style.color = 'white';
-                btnEraser.style.background = ''; btnEraser.style.color = '';
-                canvas.classList.remove('eraser-active');
-            } else {
-                btnEraser.style.background = 'var(--primary)'; btnEraser.style.color = 'white';
-                btnMagic.style.background = ''; btnMagic.style.color = '';
-                canvas.classList.add('eraser-active');
-            }
-        }
-
-        function toggleCompare(showOriginal) {
-            if (!originalImageData || !activeItem) return;
-            const canvas = document.getElementById('canvasDisplay');
+        // --- ALGORITHMES DE DETOURAGE ---
+        function processImage(item) {
+            const settings = getSettings();
+            const canvas = document.createElement('canvas');
+            const w = item.sourceImg.width;
+            const h = item.sourceImg.height;
+            canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
-            if (showOriginal) ctx.putImageData(originalImageData, 0, 0);
-            else processImage(activeItem, false);
-        }
 
-        // Interaction (Canvas)
-        setTimeout(() => {
-            const canvas = document.getElementById('canvasDisplay');
-            if (!canvas) return;
+            ctx.drawImage(item.sourceImg, 0, 0);
 
-            const getCoords = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                return {
-                    x: (e.clientX - rect.left) * (canvas.width / rect.width),
-                    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+            if (settings.active) {
+                const imgData = ctx.getImageData(0, 0, w, h);
+                const data = imgData.data;
+                const bgR = data[0], bgG = data[1], bgB = data[2];
+                const threshold = (settings.tolerance / 100) * 765;
+
+                const isMatch = (idx) => {
+                    const diff = Math.abs(data[idx] - bgR) + Math.abs(data[idx + 1] - bgG) + Math.abs(data[idx + 2] - bgB);
+                    return diff <= threshold;
                 };
-            };
 
-            canvas.onmousedown = (e) => {
-                if (!activeItem) return;
-                isDrawing = true;
-                const { x, y } = getCoords(e);
+                if (settings.contiguous) {
+                    // FLOOD FILL
+                    const stack = [0];
+                    const visited = new Uint8Array(w * h);
 
-                if (currentTool === 'magic') {
-                    const ctx = canvas.getContext('2d');
-                    const pixel = ctx.getImageData(x, y, 1, 1).data;
-                    activeItem.points.push({ x, y, color: { r: pixel[0], g: pixel[1], b: pixel[2] } });
-                    updateSettings();
-                    isDrawing = false;
+                    while (stack.length > 0) {
+                        const pixelIndex = stack.pop();
+                        if (visited[pixelIndex]) continue;
+                        visited[pixelIndex] = 1;
+
+                        const dataIdx = pixelIndex * 4;
+                        if (isMatch(dataIdx)) {
+                            data[dataIdx + 3] = 0;
+                            const x = pixelIndex % w;
+                            const y = Math.floor(pixelIndex / w);
+                            if (x > 0) stack.push(pixelIndex - 1);
+                            if (x < w - 1) stack.push(pixelIndex + 1);
+                            if (y > 0) stack.push(pixelIndex - w);
+                            if (y < h - 1) stack.push(pixelIndex + w);
+                        }
+                    }
                 } else {
-                    lastX = x; lastY = y;
-                    erase(x, y);
+                    // GLOBAL REMOVAL
+                    for (let i = 0; i < data.length; i += 4) {
+                        if (isMatch(i)) data[i + 3] = 0;
+                    }
                 }
-            };
+                ctx.putImageData(imgData, 0, 0);
+            }
 
-            canvas.onmousemove = (e) => {
-                if (!activeItem || !isDrawing || currentTool !== 'eraser') return;
-                const { x, y } = getCoords(e);
-                erase(x, y);
-                lastX = x; lastY = y;
-            };
-
-            canvas.onmouseup = () => isDrawing = false;
-            canvas.onmouseleave = () => isDrawing = false;
-        }, 500);
-
-        function erase(x, y) {
-            const canvas = document.getElementById('canvasDisplay');
-            const ctx = canvas.getContext('2d');
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.beginPath();
-            ctx.arc(x, y, 20, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalCompositeOperation = 'source-over';
+            canvas.toBlob(blob => {
+                if (item.url) URL.revokeObjectURL(item.url);
+                item.blob = blob;
+                item.url = URL.createObjectURL(blob);
+                const imgDOM = document.getElementById(`img-${item.id}`);
+                if (imgDOM) imgDOM.src = item.url;
+            }, 'image/png');
         }
 
-        async function downloadCurrent() {
-            if (!activeItem || !activeItem.blob) return;
-            const prefix = document.getElementById('prefixInput').value || activeItem.name;
-            saveAs(activeItem.blob, `${prefix}_processed.png`);
+        // --- UI HELPERS ---
+        function createGalleryCard(item) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.id = `card-${item.id}`;
+            div.innerHTML = `
+            <div class="preview-box">
+                <img id="img-${item.id}" src="${item.sourceImg.src}" class="preview-img">
+            </div>
+            <button class="btn-remove" onclick="removeItem('${item.id}')">×</button>
+            <div style="font-size:0.75rem; color:#94a3b8; text-align:center; margin-top:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
+                ${item.name}.png
+            </div>
+        `;
+            document.getElementById('gallery').appendChild(div);
+            updateUI();
         }
 
-        async function downloadZip() {
-            if (imagesData.length === 0) return;
+        window.removeItem = (id) => {
+            const itemToRemove = imagesData.find(x => x.id === id);
+            if (itemToRemove && itemToRemove.url) {
+                URL.revokeObjectURL(itemToRemove.url);
+            }
+            imagesData = imagesData.filter(x => x.id !== id);
+            document.getElementById(`card-${id}`).remove();
+            updateUI();
+        };
+
+        function updateUI() {
+            const bar = document.getElementById('downloadBar');
+            bar.style.display = imagesData.length > 0 ? 'flex' : 'none';
+            const btn = bar.querySelector('.btn-dl');
+            if (btn) btn.innerHTML = `⬇️ Tout télécharger (${imagesData.length})`;
+        }
+
+        window.downloadZip = () => {
             const zip = new JSZip();
-            const prefix = document.getElementById('prefixInput').value || "image";
+            const folder = zip.folder("png_pro");
+            const prefix = document.getElementById('prefixInput').value.trim();
+
             imagesData.forEach((item, idx) => {
-                if (item.blob) {
-                    const name = (imagesData.length > 1) ? `${prefix}_${idx + 1}.png` : `${prefix}.png`;
-                    zip.file(name, item.blob);
-                }
+                const finalName = prefix ? `${prefix}_${idx + 1}.png` : `${item.name}.png`;
+                folder.file(finalName, item.blob);
             });
-            const content = await zip.generateAsync({ type: "blob" });
-            saveAs(content, "StudioPNG_Export.zip");
-        }
 
-        function toggleBackground(mode, color) {
-            const stage = document.querySelector('.editor-stage');
-            const canvas = document.getElementById('canvasDisplay');
-            if (mode === 'transparent') {
-                stage.style.background = '';
-                stage.style.backgroundColor = '';
-                stage.style.backgroundImage = '';
-            } else {
-                stage.style.background = color || '#ffffff';
-            }
-        }
+            const btn = document.querySelector('.btn-dl');
+            btn.innerText = "📦 Compression...";
 
-        document.addEventListener('paste', (e) => {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            let files = [];
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].kind === 'file' && items[i].type.match('image.*')) {
-                    files.push(items[i].getAsFile());
-                }
-            }
-            if (files.length > 0) handleFiles(files);
-        });
-
-        function detectDevice() {
-            const ua = navigator.userAgent;
-            const badge = document.getElementById('deviceBadge');
-            const hint = document.getElementById('pasteHint');
-            let type = "Inconnu ❓";
-            let color = "#94a3b8";
-            let pasteText = "Ou faites <b>Ctrl + V</b> pour coller";
-            if (/Android/i.test(ua)) { type = "Android 🤖"; color = "#10b981"; pasteText = "👆 Restez appuyé pour coller"; }
-            else if (/iPhone|iPad|iPod/i.test(ua)) { type = "iOS 🍎"; color = "#ef4444"; pasteText = "👆 Restez appuyé pour coller"; }
-            else if (/Windows/i.test(ua)) { type = "Windows 💻"; color = "#3b82f6"; }
-            else if (/Macintosh/i.test(ua)) { type = "Mac 🖥️"; color = "#f472b6"; pasteText = "Ou faites <b>Cmd ⌘ + V</b> pour coller"; }
-            if (badge) {
-                badge.innerText = type;
-                badge.style.background = `${color}20`;
-                badge.style.borderColor = color;
-                badge.style.color = color;
-            }
-            if (hint) { hint.innerHTML = pasteText; }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            detectDevice();
-            const savedTheme = localStorage.getItem('resizerOmegaTheme');
-            if (savedTheme) {
-                document.body.setAttribute('data-theme', savedTheme);
-                const btn = document.getElementById('themeBtn');
-                if (btn) btn.innerText = savedTheme === 'light' ? '☀️' : '🌙';
-                updateFavicon(savedTheme);
-            }
-            updateUI();
-        });
-
-        function toggleTheme() {
-            const body = document.body;
-            const btn = document.getElementById('themeBtn');
-            const current = body.getAttribute('data-theme');
-            const newTheme = current === 'light' ? 'dark' : 'light';
-            if (newTheme === 'light') body.setAttribute('data-theme', 'light');
-            else body.removeAttribute('data-theme');
-            btn.innerText = newTheme === 'light' ? '☀️' : '🌙';
-            localStorage.setItem('resizerOmegaTheme', newTheme);
-            updateFavicon(newTheme);
-        }
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'fr' ? 'en' : 'fr';
-            localStorage.setItem('omegaLang', currentLang);
-            updateUI();
-        }
-
-        function updateFavicon(theme) {
-            const icon = document.querySelector('link[rel="icon"]');
-            if (icon) icon.href = `icon-${theme}.png`;
-        }
+            zip.generateAsync({ type: "blob" }).then(content => {
+                saveAs(content, "images_detourees.zip");
+                btn.innerText = "✅ Terminé !";
+                setTimeout(() => updateUI(), 2000);
+            });
+        };
     </script>
+
 </body>
 
 </html>

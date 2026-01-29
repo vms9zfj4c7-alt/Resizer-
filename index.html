@@ -7,10 +7,6 @@
     <title>OMEGA SUITE - Nova Corporation</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
-    <link rel="apple-touch-icon" href="icon-dark.png">
-    <link rel="manifest" id="appManifest" href="manifest-dark.json">
-
     <style>
         :root {
             --png-color: #2dd4bf;
@@ -18,7 +14,6 @@
             --res-color: #a855f7;
             --sort-color: #ec4899;
             --game-color: #22c55e;
-            --arcade-color: #f1c40f;
         }
 
         [data-theme="dark"] {
@@ -48,7 +43,7 @@
         }
 
         body {
-            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            font-family: 'Outfit', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             min-height: 100vh;
@@ -126,7 +121,6 @@
             font-weight: 900;
             margin: 0;
             background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%);
-            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -2px;
@@ -241,10 +235,6 @@
             color: var(--game-color);
         }
 
-        .card.arcade {
-            color: var(--arcade-color);
-        }
-
         footer {
             margin-top: 80px;
             text-align: center;
@@ -260,48 +250,6 @@
             letter-spacing: 0.3em;
             text-transform: uppercase;
             color: var(--text-muted);
-        }
-
-        @keyframes enterAnimation {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        header {
-            animation: enterAnimation 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-
-        .card {
-            opacity: 0;
-            /* Hidden initially */
-            animation: enterAnimation 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-
-        .card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .card:nth-child(5) {
-            animation-delay: 0.5s;
         }
 
         @media (max-width: 600px) {
@@ -417,23 +365,6 @@
             <p class="desc" data-i18n="descPixel">Game Boy style pixel art converter. Turn any image into 8-bit art.</p>
         </a>
 
-        <a href="games.html" class="card arcade">
-            <div class="card-header">
-                <div class="icon-wrapper">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 11h4M8 9v4" />
-                        <rect x="2" y="6" width="20" height="12" rx="2" />
-                        <circle cx="15.5" cy="12" r="1.5" />
-                        <circle cx="18.5" cy="12" r="1.5" />
-                    </svg>
-                </div>
-                <span class="tag" data-i18n="tagPlay">PLAY</span>
-            </div>
-            <h2 data-i18n="titleArcade">Arcade Zone</h2>
-            <p class="desc" data-i18n="descArcade">Ultimate collection: Simon, Tetris, Tron, Pong, Snake & more.</p>
-        </a>
-
     </div>
 
     <footer>
@@ -461,11 +392,7 @@
                 descSorter: "Organisation automatique par événement selon l'heure des prises de vue.",
                 tagRetro: "RÉTRO",
                 titlePixel: "Pixel Scanner",
-                titlePixel: "Pixel Scanner",
-                descPixel: "Convertisseur style Game Boy. Transformez vos images en pixel art 8-bit.",
-                tagPlay: "JOUER",
-                titleArcade: "Arcade Zone",
-                descArcade: "Collection ultime : Simon, Tetris, Tron, Pong, Snake et bien plus."
+                descPixel: "Convertisseur style Game Boy. Transformez vos images en pixel art 8-bit."
             },
             en: {
                 subtitle: "Your essential production tools, reimagined.",
@@ -483,11 +410,7 @@
                 descSorter: "Automatic photo organization by event time gap. Detects events and groups photos.",
                 tagRetro: "RETRO",
                 titlePixel: "Pixel Scanner",
-                titlePixel: "Pixel Scanner",
-                descPixel: "Game Boy style pixel art converter. Turn any image into 8-bit art.",
-                tagPlay: "PLAY",
-                titleArcade: "Arcade Zone",
-                descArcade: "Ultimate collection: Simon, Tetris, Tron, Pong, Snake & more."
+                descPixel: "Game Boy style pixel art converter. Turn any image into 8-bit art."
             }
         };
 
@@ -505,13 +428,6 @@
             });
         }
 
-        function updateFavicon(theme) {
-            const icon = document.getElementById('appIcon');
-            const manifest = document.getElementById('appManifest');
-            if (icon) icon.href = `icon-${theme}.png`;
-            if (manifest) manifest.href = `manifest-${theme}.json`;
-        }
-
         // --- THEME ---
         function toggleTheme() {
             const body = document.body;
@@ -521,7 +437,6 @@
             body.setAttribute('data-theme', newTheme);
             btn.innerText = isDark ? '☀️' : '🌙';
             localStorage.setItem('omegaHubTheme', newTheme);
-            updateFavicon(newTheme);
         }
 
         // --- INIT ---
@@ -529,16 +444,8 @@
         if (savedTheme) {
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
-            updateFavicon(savedTheme);
         }
         updateUI();
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then((reg) => console.log('Omega SW registered:', reg))
-                    .catch((err) => console.log('Omega SW registration failed:', err));
-            });
-        }
     </script>
 </body>
 
