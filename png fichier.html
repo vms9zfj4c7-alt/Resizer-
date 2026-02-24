@@ -461,8 +461,11 @@
                     <h2 id="lblEmpty">Glissez vos images ici</h2>
                 </div>
 
-                <div id="imageWrapper">
+                <div id="imageWrapper" style="position:relative;">
                     <canvas id="canvasDisplay"></canvas>
+                    <div id="selectionBox"
+                        style="display:none; position:absolute; border: 2px dashed #fff; background: rgba(255,255,255,0.2); box-shadow: 0 0 0 1px #000; z-index:50; pointer-events:none;">
+                    </div>
                 </div>
 
                 <div class="zoom-controls">
@@ -481,13 +484,15 @@
             <div class="editor-sidebar">
                 <div class="panel">
                     <div class="panel-title" id="lblToolsTitle">OUTILS</div>
-                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                         <button class="tool-btn active" id="btnMagic" onclick="setTool('magic')"
                             title="Baguette Magique (W)">🪄</button>
                         <button class="tool-btn" id="btnEraser" onclick="setTool('eraser')"
                             title="Gomme (E)">🧼</button>
                         <button class="tool-btn" id="btnRestore" onclick="setTool('restore')"
                             title="Restauration (R)">🖌️</button>
+                        <button class="tool-btn" id="btnSelect" onclick="setTool('select')"
+                            title="Sélection (M)">📐</button>
                     </div>
 
                     <label class="checkbox-wrapper">
@@ -503,6 +508,10 @@
                         <label class="checkbox-wrapper">
                             <input type="checkbox" id="checkSmooth" onchange="updateSettings()">
                             <span id="lblSmooth">Lisser les contours (Anti-aliasing)</span>
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="checkDefringe" onchange="updateSettings()">
+                            <span id="lblDefringe">Nettoyer les bords colorés</span>
                         </label>
                         <div style="margin-top:10px;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -626,9 +635,11 @@
                 trans: "Activer la transparence",
                 contig: "Mode Contigu",
                 smooth: "Lisser les contours (Anti-aliasing)",
+                defringe: "Nettoyer les bords colorés",
                 tol: "TOLÉRANCE",
                 size: "TAILLE PINCEAU",
                 actions: "ACTIONS RAPIDES",
+                select: "Sélection / Suppr Rectangle (M)",
                 crop: "Rogner l'image (Auto-Crop)",
                 undo: "Annuler (Ctrl+Z)",
                 reset: "Réinitialiser",
@@ -653,9 +664,11 @@
                 trans: "Enable transparency",
                 contig: "Contiguous Mode",
                 smooth: "Smooth edges (Anti-aliasing)",
+                defringe: "Decontaminate Colors (Defringe)",
                 tol: "TOLERANCE",
                 size: "BRUSH SIZE",
                 actions: "QUICK ACTIONS",
+                select: "Selection / Rect Delete (M)",
                 crop: "Crop image (Auto-Crop)",
                 undo: "Undo (Ctrl+Z)",
                 reset: "Reset",
@@ -681,6 +694,7 @@
             document.getElementById('lblTrans').innerText = d.trans;
             document.getElementById('lblContig').innerText = d.contig;
             document.getElementById('lblSmooth').innerText = d.smooth;
+            document.getElementById('lblDefringe').innerText = d.defringe;
             document.getElementById('lblTol').innerText = d.tol;
             document.getElementById('lblSize').innerText = d.size;
             document.getElementById('lblActions').innerText = d.actions;
@@ -690,6 +704,7 @@
             document.getElementById('btnMagic').title = d.magic;
             document.getElementById('btnEraser').title = d.eraser;
             document.getElementById('btnRestore').title = d.restore;
+            document.getElementById('btnSelect').title = d.select;
             document.getElementById('btnCrop').title = d.crop;
             document.getElementById('btnUndo').title = d.undo;
             document.getElementById('btnReset').title = d.reset;
@@ -717,7 +732,7 @@
                                 id: item.id, sourceImg: img, name: item.name,
                                 url: null, blob: null,
                                 points: item.points || [], strokes: item.strokes || [], history: item.history || [],
-                                settings: item.settings || { active: true, contiguous: false, smooth: false, tolerance: 15 }
+                                settings: item.settings || { active: true, contiguous: false, smooth: false, defringe: false, tolerance: 15 }
                             };
                             imagesData.push(newItem); newIds.push(newItem.id);
                             loaded++;
@@ -739,10 +754,12 @@
                 document.getElementById('checkRemoveBg').checked = activeItem.settings.active;
                 document.getElementById('checkContiguous').checked = activeItem.settings.contiguous;
                 document.getElementById('checkSmooth').checked = activeItem.settings.smooth;
+                document.getElementById('checkDefringe').checked = activeItem.settings.defringe || false;
                 document.getElementById('rangeTolerance').value = activeItem.settings.tolerance;
                 document.getElementById('tolVal').innerText = activeItem.settings.tolerance + '%';
             }
 
+            selectionRect = null; updateSelectionVis();
             originalImageData = null; resetZoom(); updateEditorView(); updateThumbnails();
         }
 
@@ -809,6 +826,7 @@
                 active: document.getElementById('checkRemoveBg').checked,
                 contiguous: document.getElementById('checkContiguous').checked,
                 smooth: document.getElementById('checkSmooth').checked,
+                defringe: document.getElementById('checkDefringe').checked,
                 tolerance: parseInt(document.getElementById('rangeTolerance').value)
             };
         }
@@ -819,6 +837,7 @@
                     active: document.getElementById('checkRemoveBg').checked,
                     contiguous: document.getElementById('checkContiguous').checked,
                     smooth: document.getElementById('checkSmooth').checked,
+                    defringe: document.getElementById('checkDefringe').checked,
                     tolerance: parseInt(document.getElementById('rangeTolerance').value)
                 };
 
@@ -868,8 +887,42 @@
                             }
                         }
                         ctx.putImageData(imgData, 0, 0);
+
+                        // DEFRINGE PROCESS (Contract Mask slightly where alpha > 0 and adjacent to 0)
+                        if (settings.defringe) {
+                            const dfImgData = ctx.getImageData(0, 0, w, h);
+                            const dfData = dfImgData.data;
+                            const alphaCopy = new Uint8ClampedArray(w * h);
+                            for (let i = 0; i < w * h; i++) alphaCopy[i] = dfData[i * 4 + 3];
+
+                            for (let y = 1; y < h - 1; y++) {
+                                for (let x = 1; x < w - 1; x++) {
+                                    const idx = y * w + x;
+                                    if (alphaCopy[idx] > 0) {
+                                        // If adjacent to a transparent pixel, erode it slightly based on distance to wand color
+                                        if (alphaCopy[idx - 1] === 0 || alphaCopy[idx + 1] === 0 || alphaCopy[idx - w] === 0 || alphaCopy[idx + w] === 0) {
+                                            const curr = idx * 4;
+                                            const d2 = Math.sqrt(Math.pow(dfData[curr] - p.color.r, 2) + Math.pow(dfData[curr + 1] - p.color.g, 2) + Math.pow(dfData[curr + 2] - p.color.b, 2));
+                                            if (d2 <= allowedDist * 1.5) { // Match a bit wider than regular tolerance for the fringe
+                                                dfData[curr + 3] = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            ctx.putImageData(dfImgData, 0, 0);
+                        }
+
                     } else if (item.type === 'stroke') {
                         const stroke = item.ref;
+
+                        if (stroke.tool === 'eraser_rect') {
+                            ctx.globalCompositeOperation = 'destination-out';
+                            ctx.fillRect(stroke.x, stroke.y, stroke.w, stroke.h);
+                            ctx.globalCompositeOperation = 'source-over';
+                            continue;
+                        }
+
                         ctx.globalCompositeOperation = stroke.tool === 'restore' ? 'source-over' : 'destination-out';
 
                         const sCvs = document.createElement('canvas'); sCvs.width = w; sCvs.height = h;
@@ -942,14 +995,16 @@
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn' + tool.charAt(0).toUpperCase() + tool.slice(1)).classList.add('active');
             document.getElementById('magicParams').style.display = tool === 'magic' ? 'block' : 'none';
-            document.getElementById('brushParams').style.display = tool !== 'magic' ? 'block' : 'none';
+            document.getElementById('brushParams').style.display = (tool !== 'magic' && tool !== 'select') ? 'block' : 'none';
 
             const stage = document.getElementById('editorStage');
             stage.className = 'editor-stage ' + tool + '-mode' + (!markersVisible ? ' hide-markers' : '');
 
             document.getElementById('customCursor').style.borderColor = tool === 'restore' ? '#2dd4bf' : '#f8fafc';
-            if (tool !== 'magic') updateCursorSize();
+            if (tool !== 'magic' && tool !== 'select') updateCursorSize();
             else document.getElementById('customCursor').style.display = 'none';
+
+            updateSelectionVis();
         }
 
         function undoLastPoint() {
@@ -997,7 +1052,7 @@
                         id: Math.random().toString(36).substr(2, 9),
                         sourceImg: new Image(), name: activeItem.name + "_crop",
                         url: null, blob: null, points: [], strokes: [], history: [],
-                        settings: activeItem.settings ? JSON.parse(JSON.stringify(activeItem.settings)) : { active: true, contiguous: false, smooth: false, tolerance: 15 }
+                        settings: activeItem.settings ? JSON.parse(JSON.stringify(activeItem.settings)) : { active: true, contiguous: false, smooth: false, defringe: false, tolerance: 15 }
                     };
                     newItem.sourceImg.src = cCvs.toDataURL();
                     newItem.sourceImg.onload = () => {
@@ -1032,7 +1087,7 @@
         function applyTransform() { document.getElementById('imageWrapper').style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`; updateCursorSize(); }
 
         function updateCursorSize() {
-            if (currentTool === 'magic' || !activeItem) return;
+            if (currentTool === 'magic' || currentTool === 'select' || !activeItem) return;
             const cursor = document.getElementById('customCursor');
             const wrapper = document.getElementById('imageWrapper');
             // Calc physical pixel size of brush on screen
@@ -1041,6 +1096,20 @@
             const screenBrushSize = (currentBrushSize / nativeWidth) * displayWidth;
             cursor.style.width = screenBrushSize + 'px';
             cursor.style.height = screenBrushSize + 'px';
+        }
+
+        let selectionRect = null;
+        function updateSelectionVis() {
+            const selectionBox = document.getElementById('selectionBox');
+            if (currentTool === 'select' && selectionRect) {
+                selectionBox.style.left = (selectionRect.x / activeItem.sourceImg.width * 100) + '%';
+                selectionBox.style.top = (selectionRect.y / activeItem.sourceImg.height * 100) + '%';
+                selectionBox.style.width = (selectionRect.w / activeItem.sourceImg.width * 100) + '%';
+                selectionBox.style.height = (selectionRect.h / activeItem.sourceImg.height * 100) + '%';
+                selectionBox.style.display = 'block';
+            } else {
+                selectionBox.style.display = 'none';
+            }
         }
 
         // --- INTERACTION ---
@@ -1056,7 +1125,7 @@
                         const newItem = {
                             id: Math.random().toString(36).substr(2, 9), sourceImg: img, name: file.name.split('.')[0],
                             url: null, blob: null, points: [], strokes: [], history: [],
-                            settings: { active: true, contiguous: false, smooth: false, tolerance: 15 }
+                            settings: { active: true, contiguous: false, smooth: false, defringe: false, tolerance: 15 }
                         };
                         imagesData.push(newItem); newIds.push(newItem.id);
                         loaded++; if (loaded === files.length) { document.getElementById('mainLoader').style.display = 'none'; setActiveImage(newIds[newIds.length - 1]); saveLocalState(); }
@@ -1104,11 +1173,20 @@
                     pStartX = e.clientX; pStartY = e.clientY; applyTransform();
                 }
 
-                if (isDrawing && currentTool !== 'magic' && currentStroke) {
+                if (isDrawing && currentStroke) {
                     const rect = canvas.getBoundingClientRect();
                     const x = (e.clientX - rect.left) * (canvas.width / rect.width);
                     const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-                    currentStroke.path.push({ x, y }); drawLive(lastX, lastY, x, y, currentTool === 'restore'); lastX = x; lastY = y;
+
+                    if (currentTool === 'select' && selectionRect) {
+                        selectionRect.w = Math.abs(x - selectionRect.startX);
+                        selectionRect.h = Math.abs(y - selectionRect.startY);
+                        selectionRect.x = Math.min(x, selectionRect.startX);
+                        selectionRect.y = Math.min(y, selectionRect.startY);
+                        updateSelectionVis();
+                    } else if (currentTool !== 'magic') {
+                        currentStroke.path.push({ x, y }); drawLive(lastX, lastY, x, y, currentTool === 'restore'); lastX = x; lastY = y;
+                    }
                 }
             });
 
@@ -1136,6 +1214,10 @@
                         } catch (err) { }
                     }
                     isDrawing = false;
+                } else if (currentTool === 'select') {
+                    selectionRect = { startX: x, startY: y, x: x, y: y, w: 0, h: 0 };
+                    currentStroke = true; // just to pass the check in mousemove
+                    updateSelectionVis();
                 } else {
                     currentStroke = { tool: currentTool, size: currentBrushSize, path: [{ x, y }] };
                     activeItem.strokes.push(currentStroke); activeItem.history.push({ type: 'stroke', ref: currentStroke });
@@ -1179,6 +1261,16 @@
                     if (e.key.toLowerCase() === 'w') setTool('magic');
                     if (e.key.toLowerCase() === 'e') setTool('eraser');
                     if (e.key.toLowerCase() === 'r') setTool('restore');
+                    if (e.key.toLowerCase() === 'm') setTool('select');
+                }
+
+                if ((e.code === 'Delete' || e.code === 'Backspace') && currentTool === 'select' && selectionRect && selectionRect.w > 0 && selectionRect.h > 0) {
+                    if (activeItem) {
+                        const stroke = { tool: 'eraser_rect', x: selectionRect.x, y: selectionRect.y, w: selectionRect.w, h: selectionRect.h };
+                        activeItem.strokes.push(stroke); activeItem.history.push({ type: 'stroke', ref: stroke });
+                        selectionRect = null; updateSelectionVis();
+                        updateSettings();
+                    }
                 }
             });
             window.addEventListener('keyup', e => {
