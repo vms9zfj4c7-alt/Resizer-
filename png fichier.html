@@ -608,7 +608,8 @@
                 src: item.sourceImg.src,
                 points: item.points,
                 strokes: item.strokes,
-                history: item.history
+                history: item.history,
+                settings: item.settings
             }));
             localforage.setItem('studio_png_state', serialized);
         }
@@ -715,7 +716,8 @@
                             const newItem = {
                                 id: item.id, sourceImg: img, name: item.name,
                                 url: null, blob: null,
-                                points: item.points || [], strokes: item.strokes || [], history: item.history || []
+                                points: item.points || [], strokes: item.strokes || [], history: item.history || [],
+                                settings: item.settings || { active: true, contiguous: false, smooth: false, tolerance: 15 }
                             };
                             imagesData.push(newItem); newIds.push(newItem.id);
                             loaded++;
@@ -732,6 +734,15 @@
 
         function setActiveImage(id) {
             activeImageId = id; activeItem = imagesData.find(x => x.id === id);
+
+            if (activeItem && activeItem.settings) {
+                document.getElementById('checkRemoveBg').checked = activeItem.settings.active;
+                document.getElementById('checkContiguous').checked = activeItem.settings.contiguous;
+                document.getElementById('checkSmooth').checked = activeItem.settings.smooth;
+                document.getElementById('rangeTolerance').value = activeItem.settings.tolerance;
+                document.getElementById('tolVal').innerText = activeItem.settings.tolerance + '%';
+            }
+
             originalImageData = null; resetZoom(); updateEditorView(); updateThumbnails();
         }
 
@@ -793,6 +804,7 @@
         }
 
         function getSettings() {
+            if (activeItem && activeItem.settings) return activeItem.settings;
             return {
                 active: document.getElementById('checkRemoveBg').checked,
                 contiguous: document.getElementById('checkContiguous').checked,
@@ -803,6 +815,13 @@
 
         function updateSettings() {
             if (activeItem) {
+                activeItem.settings = {
+                    active: document.getElementById('checkRemoveBg').checked,
+                    contiguous: document.getElementById('checkContiguous').checked,
+                    smooth: document.getElementById('checkSmooth').checked,
+                    tolerance: parseInt(document.getElementById('rangeTolerance').value)
+                };
+
                 document.getElementById('mainLoader').style.display = 'flex';
                 processImage(true).then(() => {
                     document.getElementById('mainLoader').style.display = 'none';
@@ -977,7 +996,8 @@
                     const newItem = {
                         id: Math.random().toString(36).substr(2, 9),
                         sourceImg: new Image(), name: activeItem.name + "_crop",
-                        url: null, blob: null, points: [], strokes: [], history: []
+                        url: null, blob: null, points: [], strokes: [], history: [],
+                        settings: activeItem.settings ? JSON.parse(JSON.stringify(activeItem.settings)) : { active: true, contiguous: false, smooth: false, tolerance: 15 }
                     };
                     newItem.sourceImg.src = cCvs.toDataURL();
                     newItem.sourceImg.onload = () => {
@@ -1033,7 +1053,11 @@
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        const newItem = { id: Math.random().toString(36).substr(2, 9), sourceImg: img, name: file.name.split('.')[0], url: null, blob: null, points: [], strokes: [], history: [] };
+                        const newItem = {
+                            id: Math.random().toString(36).substr(2, 9), sourceImg: img, name: file.name.split('.')[0],
+                            url: null, blob: null, points: [], strokes: [], history: [],
+                            settings: { active: true, contiguous: false, smooth: false, tolerance: 15 }
+                        };
                         imagesData.push(newItem); newIds.push(newItem.id);
                         loaded++; if (loaded === files.length) { document.getElementById('mainLoader').style.display = 'none'; setActiveImage(newIds[newIds.length - 1]); saveLocalState(); }
                     }; img.src = e.target.result;
