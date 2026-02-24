@@ -442,11 +442,14 @@
             <h1 style="margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;"
                 onclick="window.location.href='index.html'" id="lblTitle" title="Retour menu principal">
                 <span
-                    style="font-size: 1.5rem; display: flex; align-items: center; justify-content: center; height: 100%;">✨</span>
+                    style="font-size: 1.5rem; display: flex; align-items: center; justify-content: center; height: 100%;">🏠</span>
                 Studio PNG Pro
             </h1>
             <div style="display:flex; gap:10px;">
-                <button class="zoom-btn" id="btnLang" onclick="toggleLang()" title="Langue / Language">🇬🇧</button>
+                <button class="zoom-btn" id="btnLang" onclick="toggleLang()" title="Langue / Language"
+                    style="display:flex; align-items:center; justify-content:center; padding: 0 8px;">
+                    <img src="https://flagcdn.com/w40/fr.png" style="width:20px; border-radius:2px;" alt="FR">
+                </button>
                 <button class="zoom-btn" id="btnTheme" onclick="toggleTheme()" title="Thème (Clair/Sombre)">☀️</button>
             </div>
         </div>
@@ -635,7 +638,7 @@
                 zoomOut: "Dézoomer",
                 actualSize: "Taille réelle",
                 zoomIn: "Zoomer",
-                langIcon: "🇬🇧",
+                langIcon: "<img src='https://flagcdn.com/w40/fr.png' style='width:20px; border-radius:2px;' alt='FR'>",
                 langTitle: "Switch to English"
             },
             en: {
@@ -662,7 +665,7 @@
                 zoomOut: "Zoom out",
                 actualSize: "Actual size",
                 zoomIn: "Zoom in",
-                langIcon: "🇫🇷",
+                langIcon: "<img src='https://flagcdn.com/w40/gb.png' style='width:20px; border-radius:2px;' alt='GB'>",
                 langTitle: "Passer en Français"
             }
         };
@@ -691,7 +694,7 @@
             document.getElementById('btnReset').title = d.reset;
             document.getElementById('btnZip').title = d.zip;
 
-            document.getElementById('btnLang').innerText = d.langIcon;
+            document.getElementById('btnLang').innerHTML = d.langIcon;
             document.getElementById('btnLang').title = d.langTitle;
         }
 
