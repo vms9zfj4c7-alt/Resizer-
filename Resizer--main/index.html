@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OMEGA SUITE - Nova Corporation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <meta name="description"
+        content="Omega Suite par Nova Corporation. Vos outils de production essentiels en ligne : détourage PNG gratuit, redimensionnement d'image, décompresseur ZIP, et bien plus !">
+    <meta property="og:title" content="OMEGA SUITE - Nova Corporation">
+    <meta property="og:description"
+        content="Découvrez une suite d'outils web puissants et complets, performants et sans limite.">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
+    <link rel="apple-touch-icon" href="icon-dark.png">
+    <link rel="manifest" id="appManifest" href="manifest-dark.json">
+
+    <style>
+        :root {
+            --png-color: #2dd4bf;
+            --zip-color: #6366f1;
+            --res-color: #a855f7;
+            --sort-color: #ec4899;
+            --game-color: #22c55e;
+            --arcade-color: #f1c40f;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #09090b;
+            --bg-card: rgba(30, 41, 59, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --shadow-card: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            --bg-badge: rgba(255, 255, 255, 0.03);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #e0e7ff;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --border: rgba(0, 0, 0, 0.05);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --shadow-card: 0 20px 40px -10px rgba(50, 50, 93, 0.1);
+            --bg-badge: rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.1), transparent 25%);
+            background-attachment: fixed;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-actions {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1) translateY(-2px);
+            border-color: var(--png-color);
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .tourbillon {
+            animation: spin-click 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes spin-click {
+            0% {
+                transform: scale(0.9) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.15) rotate(180deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(360deg);
+            }
+        }
+
+        .brand-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--bg-badge);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 0;
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        p.subtitle {
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 35px;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(12px);
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px) !important;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: var(--bg-badge);
+            border: 1px solid var(--border);
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            background: var(--bg-badge);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        p.desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            flex-grow: 1;
+            margin-bottom: 25px;
+        }
+
+        /* Couleurs Thématiques */
+        .card.png {
+            color: var(--png-color);
+        }
+
+        .card.zip {
+            color: var(--zip-color);
+        }
+
+        .card.res {
+            color: var(--res-color);
+        }
+
+        .card.sort {
+            color: var(--sort-color);
+        }
+
+        .card.game {
+            color: var(--game-color);
+        }
+
+        .card.arcade {
+            color: var(--arcade-color);
+        }
+
+        footer {
+            margin-top: 80px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0.6;
+        }
+
+        .footer-slogan {
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        @keyframes enterAnimation {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        header {
+            animation: enterAnimation 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .card {
+            opacity: 0;
+            /* Hidden initially */
+            animation: enterAnimation 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        @media (max-width: 600px) {
+            .header-actions {
+                position: relative;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+
+    <header>
+        <div class="header-actions">
+            <button class="action-btn" id="langBtn" onclick="toggleLanguage()">🇫🇷</button>
+            <button class="action-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+        </div>
+        <div class="brand-badge">NOVA CORPORATION</div>
+        <h1>OMEGA SUITE</h1>
+        <p class="subtitle" data-i18n="subtitle">Your essential production tools, reimagined.</p>
+    </header>
+
+    <div class="grid-container">
+
+        <a href="png%20fichier.html" class="card png">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagUpdated">UPDATED</span>
+            </div>
+            <h2 data-i18n="titlePng">Studio PNG Pro</h2>
+            <p class="desc" data-i18n="descPng">Smart color keying. Transparency, contiguous mode, and bulk export
+                capabilities.</p>
+        </a>
+
+        <a href="unzip.html" class="card zip">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagNew">NEW</span>
+            </div>
+            <h2 data-i18n="titleZip">Décompresseur ZIP</h2>
+            <p class="desc" data-i18n="descZip">Explorez et extrayez vos archives ZIP facilement. Glisser-déposer et
+                extraction rapide.</p>
+        </a>
+
+        <a href="dossier.html" class="card zip">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagUltimate">ULTIMATE</span>
+            </div>
+            <h2 data-i18n="titleFusion">Fusion Omega</h2>
+            <p class="desc" data-i18n="descFusion">Merge, sort, deduplicate, and rename thousands of files instantly.
+            </p>
+        </a>
+
+        <a href="64.html" class="card res">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagGrid">GRID</span>
+            </div>
+            <h2 data-i18n="titleResizer">Resizer Omega</h2>
+            <p class="desc" data-i18n="descResizer">Instagram grid splitter, resizing, and conversion. The all-in-one
+                visual tool.</p>
+        </a>
+
+        <a href="trieur.html" class="card sort">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagAi">AI SORT</span>
+            </div>
+            <h2 data-i18n="titleSorter">Trieur Omega</h2>
+            <p class="desc" data-i18n="descSorter">Automatic photo organization by event time gap. Detects events and
+                groups photos.</p>
+        </a>
+
+        <a href="pixelart.html" class="card game">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagRetro">RETRO</span>
+            </div>
+            <h2 data-i18n="titlePixel">Pixel Scanner</h2>
+            <p class="desc" data-i18n="descPixel">Game Boy style pixel art converter. Turn any image into 8-bit art.</p>
+        </a>
+
+        <a href="games.html" class="card arcade">
+            <div class="card-header">
+                <div class="icon-wrapper">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 11h4M8 9v4" />
+                        <rect x="2" y="6" width="20" height="12" rx="2" />
+                        <circle cx="15.5" cy="12" r="1.5" />
+                        <circle cx="18.5" cy="12" r="1.5" />
+                    </svg>
+                </div>
+                <span class="tag" data-i18n="tagPlay">PLAY</span>
+            </div>
+            <h2 data-i18n="titleArcade">Arcade Zone</h2>
+            <p class="desc" data-i18n="descArcade">Ultimate collection: Simon, Tetris, Tron, Pong, Snake & more.</p>
+        </a>
+
+    </div>
+
+    <footer>
+        <div class="footer-copy">&copy; 2026 Nova Corporation. All rights reserved.</div>
+        <div class="footer-slogan">Beyond the Horizon</div>
+    </footer>
+
+    <script>
+        // --- TRADUCTIONS ---
+        let currentLang = localStorage.getItem('omegaLang') || 'fr';
+        const translations = {
+            fr: {
+                subtitle: "Vos outils de production essentiels, réimaginés.",
+                tagUpdated: "MIS À JOUR",
+                tagUltimate: "ULTIME",
+                tagGrid: "GRILLE",
+                tagAi: "TRI AUTO",
+                tagNew: "NOUVEAU",
+                titleZip: "Décompresseur ZIP",
+                descZip: "Explorez et extrayez vos archives ZIP facilement. Glisser-déposer et extraction rapide.",
+                titlePng: "Studio PNG Pro",
+                descPng: "Détourage intelligent. Transparence, mode contigu et export de masse.",
+                titleFusion: "Fusion Omega",
+                descFusion: "Fusionnez, triez, dédupliquez et renommez des milliers de fichiers instantanément.",
+                titleResizer: "Resizer Omega",
+                descResizer: "Découpe pour Instagram (Grid), redimensionnement et conversion universelle.",
+                titleSorter: "Trieur Omega",
+                descSorter: "Organisation automatique par événement selon l'heure des prises de vue.",
+                tagRetro: "RÉTRO",
+                titlePixel: "Pixel Scanner",
+                descPixel: "Convertisseur style Game Boy. Transformez vos images en pixel art 8-bit.",
+                tagPlay: "JOUER",
+                titleArcade: "Arcade Zone",
+                descArcade: "Collection ultime : Simon, Tetris, Tron, Pong, Snake et bien plus."
+            },
+            en: {
+                subtitle: "Your essential production tools, reimagined.",
+                tagUpdated: "UPDATED",
+                tagUltimate: "ULTIMATE",
+                tagGrid: "GRID",
+                tagAi: "AI SORT",
+                tagNew: "NEW",
+                titleZip: "ZIP Decompressor",
+                descZip: "Browse and extract your ZIP archives easily. Drag & drop support and fast extraction.",
+                titlePng: "Studio PNG Pro",
+                descPng: "Smart color keying. Transparency, contiguous mode, and bulk export capabilities.",
+                titleFusion: "Fusion Omega",
+                descFusion: "Merge, sort, deduplicate, and rename thousands of files instantly.",
+                titleResizer: "Resizer Omega",
+                descResizer: "Instagram grid splitter, resizing, and conversion. The all-in-one visual tool.",
+                titleSorter: "Trieur Omega",
+                descSorter: "Automatic photo organization by event time gap. Detects events and groups photos.",
+                tagRetro: "RETRO",
+                titlePixel: "Pixel Scanner",
+                descPixel: "Game Boy style pixel art converter. Turn any image into 8-bit art.",
+                tagPlay: "PLAY",
+                titleArcade: "Arcade Zone",
+                descArcade: "Ultimate collection: Simon, Tetris, Tron, Pong, Snake & more."
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            localStorage.setItem('omegaLang', currentLang);
+            updateUI();
+
+            const btn = document.getElementById('langBtn');
+            btn.classList.add('tourbillon');
+            btn.onanimationend = () => {
+                btn.style.transition = 'none';
+                btn.classList.remove('tourbillon');
+                requestAnimationFrame(() => requestAnimationFrame(() => btn.style.transition = ''));
+            };
+        }
+
+        function updateUI() {
+            document.getElementById('langBtn').innerHTML = currentLang === 'fr'
+                ? "<img src='https://flagcdn.com/w40/fr.png' style='width:24px; border-radius:3px;' alt='FR'>"
+                : "<img src='https://flagcdn.com/w40/gb.png' style='width:24px; border-radius:3px;' alt='EN'>";
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.innerText = translations[currentLang][key];
+            });
+        }
+
+        function updateFavicon(theme) {
+            const icon = document.getElementById('appIcon');
+            const manifest = document.getElementById('appManifest');
+            if (icon) icon.href = `icon-${theme}.png`;
+            if (manifest) manifest.href = `manifest-${theme}.json`;
+        }
+
+        // --- THEME ---
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            btn.classList.add('tourbillon');
+            btn.onanimationend = () => {
+                btn.style.transition = 'none';
+                btn.classList.remove('tourbillon');
+                requestAnimationFrame(() => requestAnimationFrame(() => btn.style.transition = ''));
+            };
+
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            btn.innerText = isDark ? '☀️' : '🌙';
+            localStorage.setItem('omegaHubTheme', newTheme);
+            updateFavicon(newTheme);
+        }
+
+        // --- INIT ---
+        const savedTheme = localStorage.getItem('omegaHubTheme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeBtn').innerText = savedTheme === 'light' ? '☀️' : '🌙';
+            updateFavicon(savedTheme);
+        }
+        updateUI();
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((reg) => console.log('Omega SW registered:', reg))
+                    .catch((err) => console.log('Omega SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
