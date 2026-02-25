@@ -25,16 +25,15 @@
       --primary-glow: rgba(139, 92, 246, 0.4);
       --accent: #10b981;
 
-      --device-body: #064e3b;
-      /* Dark Green (Emerald 900) */
-      /* Matte Black */
-      --device-face: #27272a;
-      --screen-border: #000;
+      --device-body: #1e293b;
+      /* Sleek Slate Gray */
+      --device-face: #334155;
+      --screen-border: #020617;
 
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --btn-on: #3f3f46;
-      --btn-active: #52525b;
+      --btn-on: #475569;
+      --btn-active: #64748b;
     }
 
     [data-theme="light"] {
@@ -43,13 +42,12 @@
       --primary-glow: rgba(124, 58, 237, 0.3);
       --accent: #059669;
 
-      --device-body: #bfdbfe;
-      /* Light Blue (Blue 200) */
-      /* Clean Grey/White */
+      --device-body: #e2e8f0;
+      /* Clean light gray */
       --device-face: #f8fafc;
-      --screen-border: #1e293b;
+      --screen-border: #0f172a;
 
-      --text-main: #1e293b;
+      --text-main: #0f172a;
       --text-muted: #64748b;
       --btn-on: #cbd5e1;
       --btn-active: #94a3b8;
@@ -126,18 +124,14 @@
     }
 
 
-    /* --- MODERN HANDHELD FRAME --- */
+    /* --- MINIMAL HANDHELD FRAME --- */
     .device-frame {
       background: var(--device-body);
       width: 100%;
       max-width: 420px;
-      border-radius: 40px;
-      /* More rounded like Switch/Pocket */
+      border-radius: 30px;
       padding: 30px;
-      box-shadow:
-        0 50px 100px -20px rgba(0, 0, 0, 0.5),
-        inset 0 2px 4px rgba(255, 255, 255, 0.1),
-        inset 0 -4px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.4);
       position: relative;
       border: 1px solid rgba(255, 255, 255, 0.05);
       transition: background 0.3s;
@@ -148,10 +142,7 @@
     }
 
     [data-theme="light"] .device-frame {
-      box-shadow:
-        0 30px 60px -15px rgba(0, 0, 0, 0.15),
-        inset 0 2px 4px rgba(255, 255, 255, 0.8),
-        inset 0 -4px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
@@ -160,11 +151,9 @@
       background: var(--screen-border);
       width: 100%;
       aspect-ratio: 1.1/1;
-      border-radius: 8px;
-      /* Sharp screen corners */
+      border-radius: 12px;
       padding: 20px 20px 40px 20px;
-      /* Bottom padding for 'logo' */
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
       position: relative;
       display: flex;
       align-items: center;
@@ -225,23 +214,61 @@
     /* D-PAD */
     .dpad {
       position: relative;
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
     }
 
     .dpad button {
       position: absolute;
       background: var(--btn-on);
       border: none;
-      border-radius: 4px;
       cursor: pointer;
       transition: 0.1s;
-      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+      outline: none;
+    }
+
+    .dpad-c {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      width: 30px;
+      height: 30px;
+      background: var(--btn-on);
+    }
+
+    .dpad-u {
+      top: 0;
+      left: 30px;
+      width: 30px;
+      height: 30px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .dpad-d {
+      bottom: 0;
+      left: 30px;
+      width: 30px;
+      height: 30px;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .dpad-l {
+      top: 30px;
+      left: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    .dpad-r {
+      top: 30px;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 0 4px 4px 0;
     }
 
     .dpad button:active {
-      transform: translateY(2px);
-      box-shadow: none;
       background: var(--btn-active);
     }
 
@@ -286,12 +313,64 @@
 
     #resultsPanel {
       display: none;
-      /* Progressive Disclosure */
       flex-direction: column;
       gap: 15px;
       width: 100%;
       margin-top: 20px;
       animation: fadeIn 0.5s ease;
+    }
+
+    .settings-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: var(--bg-card, rgba(0, 0, 0, 0.05));
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(128, 128, 128, 0.1);
+    }
+
+    [data-theme="dark"] .settings-panel {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .setting-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Sleek Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(128, 128, 128, 0.2);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--primary-glow);
     }
 
     /* AB BUTTONS */
@@ -302,33 +381,29 @@
     }
 
     .btn-round {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       border: none;
-      background: linear-gradient(145deg, var(--btn-on), var(--device-face));
-      box-shadow:
-        5px 5px 10px rgba(0, 0, 0, 0.2),
-        -2px -2px 5px rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
+      background: var(--btn-on);
+      color: #fff;
       font-weight: 800;
-      font-size: 14px;
+      font-size: 16px;
       cursor: pointer;
-      transition: 0.1s;
+      transition: 0.15s;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
     }
 
     .btn-round.primary {
       background: var(--primary);
-      color: white;
-      box-shadow: 0 4px 10px var(--primary-glow);
     }
 
     .btn-round:active {
-      transform: scale(0.95);
-      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
+      transform: translateY(4px);
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
     }
 
     .btn-round:disabled {
@@ -485,56 +560,60 @@
     </div>
 
     <div id="resultsPanel">
-      <div style="display: flex; gap: 10px;">
-        <button class="btn-action large-btn" onclick="downloadImage()">
-          <span class="label" style="display:none">B</span> 💾 SAVE
+      <div style="display: flex; gap: 15px;">
+        <button class="btn-action large-btn" onclick="triggerDownload()" style="flex:1; border-radius:16px;">
+          <span style="font-size: 1.2rem;">💾</span> SAVE
         </button>
 
-        <button class="btn-action large-btn" onclick="exportGIF()" style="background:#e11d48;">
-          <span class="label" style="display:none">GIF</span> 🎬 GIF
+        <button class="btn-action large-btn" onclick="exportGIF()"
+          style="flex:1; border-radius:16px; background:#e11d48;">
+          <span style="font-size: 1.2rem;">🎬</span> GIF
         </button>
       </div>
 
-      <div
-        style="display:flex; flex-direction:column; gap:10px; background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid var(--border);">
+      <div class="settings-panel">
 
-        <!-- PIXEL SIZE SLIDER -->
-        <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">
-          DENSITÉ PIXELS: <span id="pixelVal">64px</span>
-        </label>
-        <input type="range" id="sizeRange" min="32" max="192" step="8" value="64"
-          oninput="document.getElementById('pixelVal').innerText = this.value + 'px'; updateResolution()">
+        <!-- PIXEL SIZE -->
+        <div>
+          <div class="setting-row" style="margin-bottom:12px;">
+            <span class="setting-label">DENSITÉ:</span>
+            <span id="pixelVal" style="font-weight:800; color:var(--text-main);">64px</span>
+          </div>
+          <input type="range" id="sizeRange" min="32" max="192" step="8" value="64"
+            oninput="document.getElementById('pixelVal').innerText = this.value + 'px'; updateResolution()">
+        </div>
 
-        <!-- PALETTE SECTION -->
-        <div style="margin-top:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <label style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">PALETTE</label>
-            <div style="display:flex; align-items:center; gap:5px;">
-              <label style="font-size:0.7rem; color:var(--text-main);">Normal</label>
-              <input type="checkbox" id="normalModeToggle" onchange="toggleNormalMode()">
-            </div>
+        <!-- PALETTE & MODE -->
+        <div style="padding-top:20px; border-top:1px solid rgba(128, 128, 128, 0.1);">
+          <div class="setting-row" style="margin-bottom:12px;">
+            <span class="setting-label">PALETTE DE COULEURS</span>
+            <label
+              style="font-size:0.7rem; color:var(--text-muted); display:flex; align-items:center; gap:5px; cursor:pointer;">
+              Normal
+              <input type="checkbox" id="normalModeToggle" onchange="toggleNormalMode()"
+                style="transform:scale(1.2); cursor:pointer;">
+            </label>
           </div>
 
-          <div id="paletteControls" style="display:flex; justify-content:space-between; gap:5px;">
+          <div id="paletteControls" style="display:flex; justify-content:space-between; gap:10px;">
             <input type="color" id="col0" value="#0f380f" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
+              style="width:100%; height:40px; border:none; padding:0; border-radius:12px; cursor:pointer; overflow:hidden;">
             <input type="color" id="col1" value="#306230" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
+              style="width:100%; height:40px; border:none; padding:0; border-radius:12px; cursor:pointer; overflow:hidden;">
             <input type="color" id="col2" value="#8bac0f" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
+              style="width:100%; height:40px; border:none; padding:0; border-radius:12px; cursor:pointer; overflow:hidden;">
             <input type="color" id="col3" value="#9bbc0f" onchange="updateCustomPalette()"
-              style="width:100%; height:30px; border:none; cursor:pointer;">
+              style="width:100%; height:40px; border:none; padding:0; border-radius:12px; cursor:pointer; overflow:hidden;">
           </div>
         </div>
 
-        <div
-          style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
-          <label
-            style="color:var(--text-muted); font-size:0.8rem; font-weight:bold; display:flex; align-items:center; gap:5px;">
-            ✏️ MODE ÉDITEUR
-          </label>
-          <input type="checkbox" id="editModeToggle" onchange="toggleEditMode()" style="transform:scale(1.2);">
+        <!-- EDIT MODE -->
+        <div class="setting-row" style="padding-top:15px; border-top:1px solid rgba(128, 128, 128, 0.1);">
+          <span class="setting-label">✏️ ÉDITER PIXELS (Clic)</span>
+          <input type="checkbox" id="editModeToggle" onchange="toggleEditMode()"
+            style="transform:scale(1.5); cursor:pointer;">
         </div>
+
       </div>
     </div>
 
@@ -687,30 +766,25 @@
         currentPalette = 'normal';
         palDiv.style.opacity = '0.3';
         palDiv.style.pointerEvents = 'none';
+        scan();
       } else {
-        updateCustomPalette(); // Restore custom colors
         palDiv.style.opacity = '1';
         palDiv.style.pointerEvents = 'auto';
+        updateCustomPalette(); // This function already calls scan()
       }
-
-      // If we are switching modes, we often need to RE-SCAN to bake in values, 
-      // OR we can just reRender if we stored true colors. 
-      // Our 'pixels' array stores true RGB (p.r, p.g, p.b).
-      // So we can just Re-Render!
-      reRenderPixels();
     }
 
     function updateCustomPalette() {
+      // If we are currently in normal mode, don't auto-switch unless user unchecked normal
+      if (document.getElementById('normalModeToggle').checked) return;
+
       const c0 = document.getElementById('col0').value;
       const c1 = document.getElementById('col1').value;
       const c2 = document.getElementById('col2').value;
       const c3 = document.getElementById('col3').value;
       currentPalette = [c0, c1, c2, c3];
 
-      // If we are currently in normal mode, don't auto-switch unless user unchecked normal
-      if (document.getElementById('normalModeToggle').checked) return;
-
-      reRenderPixels();
+      scan();
     }
 
     function toggleEditMode() {
@@ -734,14 +808,35 @@
     let offsetY = 0;
     const MOVE_STEP = 20;
 
+    function vibe() {
+      if (navigator.vibrate) navigator.vibrate(40);
+      const bezel = document.querySelector('.screen-bezel');
+      if (bezel) {
+        bezel.style.transform = 'translateY(1px)';
+        setTimeout(() => bezel.style.transform = '', 50);
+      }
+      if (led) {
+        led.style.background = "#fff";
+        led.style.boxShadow = "0 0 15px #fff";
+        setTimeout(() => {
+          led.style.background = "";
+          led.style.boxShadow = "";
+        }, 50);
+      }
+    }
+
     function moveX(dir) {
+      vibe();
       offsetX += dir * MOVE_STEP;
       redraw();
+      scan(); // Re-scan to apply offset instantly
     }
 
     function moveY(dir) {
+      vibe();
       offsetY += dir * MOVE_STEP;
       redraw();
+      scan();
     }
 
     let img = new Image(); let pixelatedCanvas = null; let y = 0; let anim = null;
@@ -749,11 +844,10 @@
     function redraw() {
       if (!img.src) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Draw original image with offset
-      ctx.drawImage(img, offsetX, offsetY, canvas.width, canvas.height); // Note: we are stretching image to c.width/height in original code.
-      // Wait, original code was: ctx.drawImage(img, 0, 0, c.width, c.height);
-      // It calculated c.width/c.height based on ratio.
-      // So we should draw at offsetX, offsetY with same w, h.
+      // We draw the image but shifted by offset so it pans correctly
+      const parent = canvas.parentElement;
+      const ratio = Math.min(parent.clientWidth / img.width, parent.clientHeight / img.height);
+      // Not actually rendering to screen here, just clearing. The real drawing is in scan()
     }
 
     function handleFile(file) {
@@ -873,84 +967,85 @@
 
     function scan() {
       if (!img.src) return;
+      cancelAnimationFrame(anim);
+      vibe();
 
-      // --- PIXELATION LOGIC (UPDATED WITH PALETTE) ---
       const w = img.width;
       const h = img.height;
-
-      // Target width from input
       const targetWidth = parseInt(document.getElementById('sizeRange').value) || 64;
-
       const scale = targetWidth / w;
       const targetHeight = Math.floor(h * scale);
 
-      canvas.width = targetWidth * 4; // Scale up for visibility
+      canvas.width = targetWidth * 4;
       canvas.height = targetHeight * 4;
-      // Let's use 4x visual scale so pixels look big
 
       const pixelSize = 4;
       g_pixelSize = pixelSize;
       g_width = canvas.width; g_height = canvas.height;
 
-      // Draw temp context to read pixels
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = targetWidth;
       tempCanvas.height = targetHeight;
       const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
+      // Apply offset when drawing temp image
+      tempCtx.drawImage(img, offsetX * scale, offsetY * scale, targetWidth, targetHeight);
 
       const imgData = tempCtx.getImageData(0, 0, targetWidth, targetHeight).data;
+      pixels = [];
 
-      pixels = []; // Reset storage
-
-      // Show controls when scan starts/finishes
       document.getElementById('resultsPanel').style.display = 'flex';
 
-      // Clear Canvas
       const useNormalColors = (currentPalette === 'normal');
-      if (!useNormalColors) {
-        ctx.fillStyle = currentPalette[0]; // BG
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
+      ctx.fillStyle = useNormalColors ? '#000' : currentPalette[0];
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Iterate and Quantize
-      let pixelIndex = 0;
-      for (let y = 0; y < targetHeight; y++) {
-        for (let x = 0; x < targetWidth; x++) {
-          const i = (y * targetWidth + x) * 4;
+      let currentY = 0;
 
-          let fillStyle;
-          let colorIndex = 0;
-          let r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+      function drawScanline() {
+        const rowsPerFrame = Math.max(1, Math.floor(targetHeight / 20)); // Animated sweeping scan
+        const endY = Math.min(currentY + rowsPerFrame, targetHeight);
 
-          if (useNormalColors) {
-            fillStyle = `rgb(${r},${g},${b})`;
-            colorIndex = -1; // Special flag
-          } else {
-            const avg = (r + g + b) / 3;
-            // Map brightness to 4 colors
-            if (avg > 64) colorIndex = 1;
-            if (avg > 128) colorIndex = 2;
-            if (avg > 192) colorIndex = 3; // Lightest
-            fillStyle = currentPalette[colorIndex];
+        for (let y = currentY; y < endY; y++) {
+          for (let x = 0; x < targetWidth; x++) {
+            const i = (y * targetWidth + x) * 4;
+            let fillStyle;
+            let colorIndex = 0;
+            let r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+
+            if (useNormalColors) {
+              fillStyle = `rgb(${r},${g},${b})`;
+              colorIndex = -1;
+            } else {
+              const avg = (r + g + b) / 3;
+              if (avg > 64) colorIndex = 1;
+              if (avg > 128) colorIndex = 2;
+              if (avg > 192) colorIndex = 3;
+              fillStyle = currentPalette[colorIndex];
+            }
+
+            pixels.push({ x: x * pixelSize, y: y * pixelSize, colorIndex, r, g, b });
+
+            ctx.fillStyle = fillStyle;
+            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
           }
+        }
 
-          // Store for redraws
-          pixels.push({
-            x: x * pixelSize,
-            y: y * pixelSize,
-            colorIndex: colorIndex,
-            r: r, g: g, b: b // Store True Color too
-          });
+        // Draw physical glowing scanner line
+        if (endY < targetHeight) {
+          ctx.fillStyle = useNormalColors ? "rgba(255, 255, 255, 0.5)" : "rgba(16, 185, 129, 0.5)";
+          ctx.fillRect(0, endY * pixelSize, canvas.width, pixelSize * 2);
+        }
 
-          // Draw
-          ctx.fillStyle = fillStyle;
-          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        currentY = endY;
+
+        if (currentY < targetHeight) {
+          anim = requestAnimationFrame(drawScanline);
+        } else {
+          btnDownload.disabled = false;
         }
       }
-      btnDownload.disabled = false;
+
+      anim = requestAnimationFrame(drawScanline);
     }
 
     function reRenderPixels() {
@@ -1083,7 +1178,12 @@
       gif.addFrame(bctx, { delay: 2000, copy: true });
 
       gif.on('finished', function (blob) {
-        saveAs(blob, "pixel_art_scan.gif");
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = 'pixel_art_scan.gif';
+        a.href = url;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       });
 
       alert("Génération du GIF en cours...");
@@ -1091,10 +1191,12 @@
     }
 
     btnScan.onclick = () => { y = 0; cancelAnimationFrame(anim); scan(); };
-    btnDownload.onclick = () => {
+    function triggerDownload() {
+      vibe();
       const a = document.createElement('a'); a.download = 'omega-pixel.png';
       a.href = canvas.toDataURL(); a.click();
-    };
+    }
+    btnDownload.onclick = triggerDownload;
   </script>
 </body>
 

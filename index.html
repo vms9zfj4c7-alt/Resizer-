@@ -7,6 +7,13 @@
     <title>OMEGA SUITE - Nova Corporation</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
 
+    <meta name="description"
+        content="Omega Suite par Nova Corporation. Vos outils de production essentiels en ligne : détourage PNG gratuit, redimensionnement d'image, décompresseur ZIP, et bien plus !">
+    <meta property="og:title" content="OMEGA SUITE - Nova Corporation">
+    <meta property="og:description"
+        content="Découvrez une suite d'outils web puissants et complets, performants et sans limite.">
+    <meta property="og:type" content="website">
+
     <link rel="icon" id="appIcon" type="image/png" href="icon-dark.png">
     <link rel="apple-touch-icon" href="icon-dark.png">
     <link rel="manifest" id="appManifest" href="manifest-dark.json">
@@ -93,7 +100,7 @@
             border-radius: 50%;
             cursor: pointer;
             font-size: 1.1rem;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
@@ -102,9 +109,31 @@
         }
 
         .action-btn:hover {
-            transform: scale(1.1);
-            border-color: var(--res-color);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            transform: scale(1.1) translateY(-2px);
+            border-color: var(--png-color);
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .tourbillon {
+            animation: spin-click 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes spin-click {
+            0% {
+                transform: scale(0.9) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.15) rotate(180deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(360deg);
+            }
         }
 
         .brand-badge {
@@ -164,7 +193,7 @@
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) !important;
             border-color: rgba(255, 255, 255, 0.2);
             box-shadow: var(--shadow-card);
         }
@@ -483,7 +512,6 @@
                 descSorter: "Organisation automatique par événement selon l'heure des prises de vue.",
                 tagRetro: "RÉTRO",
                 titlePixel: "Pixel Scanner",
-                titlePixel: "Pixel Scanner",
                 descPixel: "Convertisseur style Game Boy. Transformez vos images en pixel art 8-bit.",
                 tagPlay: "JOUER",
                 titleArcade: "Arcade Zone",
@@ -508,7 +536,6 @@
                 descSorter: "Automatic photo organization by event time gap. Detects events and groups photos.",
                 tagRetro: "RETRO",
                 titlePixel: "Pixel Scanner",
-                titlePixel: "Pixel Scanner",
                 descPixel: "Game Boy style pixel art converter. Turn any image into 8-bit art.",
                 tagPlay: "PLAY",
                 titleArcade: "Arcade Zone",
@@ -520,10 +547,20 @@
             currentLang = currentLang === 'fr' ? 'en' : 'fr';
             localStorage.setItem('omegaLang', currentLang);
             updateUI();
+
+            const btn = document.getElementById('langBtn');
+            btn.classList.add('tourbillon');
+            btn.onanimationend = () => {
+                btn.style.transition = 'none';
+                btn.classList.remove('tourbillon');
+                requestAnimationFrame(() => requestAnimationFrame(() => btn.style.transition = ''));
+            };
         }
 
         function updateUI() {
-            document.getElementById('langBtn').innerText = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
+            document.getElementById('langBtn').innerHTML = currentLang === 'fr'
+                ? "<img src='https://flagcdn.com/w40/fr.png' style='width:24px; border-radius:3px;' alt='FR'>"
+                : "<img src='https://flagcdn.com/w40/gb.png' style='width:24px; border-radius:3px;' alt='EN'>";
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 el.innerText = translations[currentLang][key];
@@ -541,6 +578,13 @@
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
+            btn.classList.add('tourbillon');
+            btn.onanimationend = () => {
+                btn.style.transition = 'none';
+                btn.classList.remove('tourbillon');
+                requestAnimationFrame(() => requestAnimationFrame(() => btn.style.transition = ''));
+            };
+
             const isDark = body.getAttribute('data-theme') === 'dark';
             const newTheme = isDark ? 'light' : 'dark';
             body.setAttribute('data-theme', newTheme);
