@@ -639,7 +639,7 @@
                 tol: "TOLÉRANCE",
                 size: "TAILLE PINCEAU",
                 actions: "ACTIONS RAPIDES",
-                select: "Sélection / Suppr Rectangle (M)",
+                select: "Sélection (Suppr=Tout, Entrée=Fond, O=Objet)",
                 crop: "Rogner l'image (Auto-Crop)",
                 undo: "Annuler (Ctrl+Z)",
                 reset: "Réinitialiser",
@@ -668,7 +668,7 @@
                 tol: "TOLERANCE",
                 size: "BRUSH SIZE",
                 actions: "QUICK ACTIONS",
-                select: "Selection / Rect Delete (M)",
+                select: "Selection (Del=All, Enter=BG, O=Object)",
                 crop: "Crop image (Auto-Crop)",
                 undo: "Undo (Ctrl+Z)",
                 reset: "Reset",
@@ -920,6 +920,75 @@
                             ctx.globalCompositeOperation = 'destination-out';
                             ctx.fillRect(stroke.x, stroke.y, stroke.w, stroke.h);
                             ctx.globalCompositeOperation = 'source-over';
+                            continue;
+                        }
+
+                        if (stroke.tool === 'magic_rect') {
+                            try {
+                                const rectX = Math.floor(stroke.x); const rectY = Math.floor(stroke.y);
+                                const rectW = Math.max(1, Math.ceil(stroke.w)); const rectH = Math.max(1, Math.ceil(stroke.h));
+                                const dfImgData = ctx.getImageData(rectX, rectY, rectW, rectH);
+                                const dfData = dfImgData.data;
+                                for (let i = 0; i < dfData.length; i += 4) {
+                                    if (dfData[i + 3] > 0) {
+                                        let erase = false;
+                                        for (let c of stroke.colors) {
+                                            const d = Math.sqrt(Math.pow(dfData[i] - c.r, 2) + Math.pow(dfData[i + 1] - c.g, 2) + Math.pow(dfData[i + 2] - c.b, 2));
+                                            if (d <= allowedDist) { erase = true; break; }
+                                        }
+                                        if (erase) dfData[i + 3] = 0;
+                                    }
+                                }
+                                ctx.putImageData(dfImgData, rectX, rectY);
+                            } catch (e) { console.error("Magic Rect Erreur:", e); }
+                            continue;
+                        }
+
+                        if (stroke.tool === 'auto_object_rect') {
+                            try {
+                                const rectX = Math.floor(stroke.x); const rectY = Math.floor(stroke.y);
+                                const rectW = Math.max(1, Math.ceil(stroke.w)); const rectH = Math.max(1, Math.ceil(stroke.h));
+
+                                ctx.globalCompositeOperation = 'destination-out';
+                                ctx.fillRect(0, 0, w, rectY);
+                                ctx.fillRect(0, rectY + rectH, w, h - (rectY + rectH));
+                                ctx.fillRect(0, rectY, rectX, rectH);
+                                ctx.fillRect(rectX + rectW, rectY, w - (rectX + rectW), rectH);
+                                ctx.globalCompositeOperation = 'source-over';
+
+                                const dfImgData = ctx.getImageData(rectX, rectY, rectW, rectH);
+                                const dfData = dfImgData.data;
+
+                                let bgColors = [];
+                                const addC = (r, g, b, a) => {
+                                    if (a === 0) return;
+                                    for (let c of bgColors) {
+                                        if (Math.abs(c.r - r) + Math.abs(c.g - g) + Math.abs(c.b - b) < 15) return;
+                                    }
+                                    if (bgColors.length < 50) bgColors.push({ r, g, b });
+                                };
+
+                                for (let x = 0; x < rectW; x++) {
+                                    let i1 = (x) * 4; addC(dfData[i1], dfData[i1 + 1], dfData[i1 + 2], dfData[i1 + 3]);
+                                    let i2 = ((rectH - 1) * rectW + x) * 4; addC(dfData[i2], dfData[i2 + 1], dfData[i2 + 2], dfData[i2 + 3]);
+                                }
+                                for (let y = 0; y < rectH; y++) {
+                                    let i1 = (y * rectW) * 4; addC(dfData[i1], dfData[i1 + 1], dfData[i1 + 2], dfData[i1 + 3]);
+                                    let i2 = (y * rectW + rectW - 1) * 4; addC(dfData[i2], dfData[i2 + 1], dfData[i2 + 2], dfData[i2 + 3]);
+                                }
+
+                                for (let i = 0; i < dfData.length; i += 4) {
+                                    if (dfData[i + 3] > 0) {
+                                        let erase = false;
+                                        for (let c of bgColors) {
+                                            const d = Math.sqrt(Math.pow(dfData[i] - c.r, 2) + Math.pow(dfData[i + 1] - c.g, 2) + Math.pow(dfData[i + 2] - c.b, 2));
+                                            if (d <= allowedDist) { erase = true; break; }
+                                        }
+                                        if (erase) dfData[i + 3] = 0;
+                                    }
+                                }
+                                ctx.putImageData(dfImgData, rectX, rectY);
+                            } catch (e) { console.error("Auto Object Rect Erreur:", e); }
                             continue;
                         }
 
@@ -1215,7 +1284,12 @@
                     }
                     isDrawing = false;
                 } else if (currentTool === 'select') {
-                    selectionRect = { startX: x, startY: y, x: x, y: y, w: 0, h: 0 };
+                    const ctx = canvas.getContext('2d');
+                    let pixel = [0, 0, 0, 0];
+                    if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+                        try { pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data; } catch (e) { }
+                    }
+                    selectionRect = { startX: x, startY: y, x: x, y: y, w: 0, h: 0, color: { r: pixel[0], g: pixel[1], b: pixel[2], a: pixel[3] } };
                     currentStroke = true; // just to pass the check in mousemove
                     updateSelectionVis();
                 } else {
@@ -1262,11 +1336,48 @@
                     if (e.key.toLowerCase() === 'e') setTool('eraser');
                     if (e.key.toLowerCase() === 'r') setTool('restore');
                     if (e.key.toLowerCase() === 'm') setTool('select');
+
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault();
+                        const r = document.getElementById('rangeTolerance');
+                        let val = parseInt(r.value);
+                        if (e.key === 'ArrowUp') val += 1;
+                        if (e.key === 'ArrowDown') val -= 1;
+                        if (e.key === 'ArrowRight') val += 10;
+                        if (e.key === 'ArrowLeft') val -= 10;
+                        r.value = Math.max(1, Math.min(100, val));
+                        document.getElementById('tolVal').innerText = r.value + '%';
+                        updateSettings();
+                    }
                 }
 
                 if ((e.code === 'Delete' || e.code === 'Backspace') && currentTool === 'select' && selectionRect && selectionRect.w > 0 && selectionRect.h > 0) {
                     if (activeItem) {
                         const stroke = { tool: 'eraser_rect', x: selectionRect.x, y: selectionRect.y, w: selectionRect.w, h: selectionRect.h };
+                        activeItem.strokes.push(stroke); activeItem.history.push({ type: 'stroke', ref: stroke });
+                        selectionRect = null; updateSelectionVis();
+                        updateSettings();
+                    }
+                }
+
+                if (e.key === 'Enter' && currentTool === 'select' && selectionRect && selectionRect.w > 0 && selectionRect.h > 0) {
+                    if (activeItem) {
+                        let colorsToErase = [];
+                        if (selectionRect.color && selectionRect.color.a > 0) colorsToErase.push(selectionRect.color);
+                        activeItem.points.forEach(p => { if (p.color) colorsToErase.push(p.color); });
+
+                        if (colorsToErase.length > 0) {
+                            const stroke = { tool: 'magic_rect', x: selectionRect.x, y: selectionRect.y, w: selectionRect.w, h: selectionRect.h, colors: colorsToErase };
+                            activeItem.strokes.push(stroke); activeItem.history.push({ type: 'stroke', ref: stroke });
+                            selectionRect = null; updateSelectionVis();
+                            updateSettings();
+                        }
+                    }
+                }
+
+                if (e.key.toLowerCase() === 'o' && currentTool === 'select' && selectionRect && selectionRect.w > 0 && selectionRect.h > 0) {
+                    if (activeItem) {
+                        const stroke = { tool: 'auto_object_rect', x: selectionRect.x, y: selectionRect.y, w: selectionRect.w, h: selectionRect.h };
                         activeItem.strokes.push(stroke); activeItem.history.push({ type: 'stroke', ref: stroke });
                         selectionRect = null; updateSelectionVis();
                         updateSettings();
