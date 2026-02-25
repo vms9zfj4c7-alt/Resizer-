@@ -977,15 +977,42 @@
                                     let i2 = (y * rectW + rectW - 1) * 4; addC(dfData[i2], dfData[i2 + 1], dfData[i2 + 2], dfData[i2 + 3]);
                                 }
 
-                                for (let i = 0; i < dfData.length; i += 4) {
-                                    if (dfData[i + 3] > 0) {
-                                        let erase = false;
-                                        for (let c of bgColors) {
-                                            const d = Math.sqrt(Math.pow(dfData[i] - c.r, 2) + Math.pow(dfData[i + 1] - c.g, 2) + Math.pow(dfData[i + 2] - c.b, 2));
-                                            if (d <= allowedDist) { erase = true; break; }
+                                let stack = [];
+                                const visited = new Uint8Array(rectW * rectH);
+
+                                const checkSeed = (x, y) => {
+                                    const idx = y * rectW + x;
+                                    if (visited[idx]) return;
+                                    const i = idx * 4;
+                                    if (dfData[i + 3] === 0) return;
+
+                                    let erase = false;
+                                    for (let c of bgColors) {
+                                        if (Math.sqrt(Math.pow(dfData[i] - c.r, 2) + Math.pow(dfData[i + 1] - c.g, 2) + Math.pow(dfData[i + 2] - c.b, 2)) <= allowedDist) {
+                                            erase = true; break;
                                         }
-                                        if (erase) dfData[i + 3] = 0;
                                     }
+                                    if (erase) {
+                                        visited[idx] = 1;
+                                        stack.push(idx);
+                                    }
+                                };
+
+                                for (let x = 0; x < rectW; x++) { checkSeed(x, 0); checkSeed(x, rectH - 1); }
+                                for (let y = 0; y < rectH; y++) { checkSeed(0, y); checkSeed(rectW - 1, y); }
+
+                                while (stack.length > 0) {
+                                    const idx = stack.pop();
+                                    const i = idx * 4;
+                                    dfData[i + 3] = 0; // erase
+
+                                    const x = idx % rectW;
+                                    const y = Math.floor(idx / rectW);
+
+                                    if (x > 0) checkSeed(x - 1, y);
+                                    if (x < rectW - 1) checkSeed(x + 1, y);
+                                    if (y > 0) checkSeed(x, y - 1);
+                                    if (y < rectH - 1) checkSeed(x, y + 1);
                                 }
                                 ctx.putImageData(dfImgData, rectX, rectY);
                             } catch (e) { console.error("Auto Object Rect Erreur:", e); }
